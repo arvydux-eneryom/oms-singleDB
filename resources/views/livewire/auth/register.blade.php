@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.auth')] class extends Component {
+    public string $subdomain = '';
     public string $name = '';
     public string $email = '';
     public string $password = '';
@@ -25,23 +27,50 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $validatedDomain = $this->validate([
+            'subdomain' => ['required', 'alpha', 'unique:domains,domain'],
+        ]);
+
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered(($user = User::create($validated))));
 
+        $tenant = Tenant::create([
+            'name' => $this->name . ' system',
+        ]);
+        $tenant->domains()->create([
+            'domain' => $this->subdomain . '.' . config('tenancy.central_domains')[0],
+        ]);
+        $user->tenants()->attach($tenant->id);
+
         Auth::login($user);
 
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
+
+        $this->redirectIntended('http://' . $this->subdomain . '.' . config('tenancy.central_domains')[0] . ':8000' . route('dashboard', absolute: false));
+
     }
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Create an account')" :description="__('Enter your details below to create your account')" />
+    <x-auth-header :title="__('Create an account')"
+                   :description="__('Enter your details below to create your account')"/>
 
     <!-- Session Status -->
-    <x-auth-session-status class="text-center" :status="session('status')" />
+    <x-auth-session-status class="text-center" :status="session('status')"/>
 
     <form wire:submit="register" class="flex flex-col gap-6">
+
+        <!-- Subdomain -->
+        <flux:input
+            wire:model="subdomain"
+            :label="__('Subdomain')"
+            type="text"
+            required
+            autofocus
+            autocomplete="subdomain"
+            :placeholder="__('Subdomain')"
+        />
+
         <!-- Name -->
         <flux:input
             wire:model="name"

@@ -25,19 +25,20 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
-    Route::view('dashboard', 'dashboard')
-        ->middleware(['auth', 'verified'])
-        ->name('dashboard');
 
-    Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+
         Route::redirect('settings', 'settings/profile');
 
         Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
         Volt::route('settings/password', 'settings.password')->name('settings.password');
         Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-    });
 
-    Route::get('/', function () {
+
+    Route::get('/a', function () {
         return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
     });
 });
