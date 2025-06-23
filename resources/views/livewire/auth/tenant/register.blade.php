@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.auth')] class extends Component {
-    public string $subdomain = '';
+    public string $tenant = '';
     public string $name = '';
     public string $email = '';
     public string $password = '';
@@ -25,50 +25,41 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        $validatedDomain = $this->validate([
-            'subdomain' => ['required', 'alpha', 'unique:domains,domain'],
+            'tenant' => ['numeric']
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        $tenant = Tenant::create([
-            'name' => $this->name . ' system',
-        ]);
+        event(new Registered(($user = User::create($validated + ['tenant_id' => $this->tenant]))));
 
-        event(new Registered(($user = User::create($validated + ['tenant_id' => $tenant->id]))));
-
-        $tenant->domains()->create([
-            'domain' => $this->subdomain . '.' . config('tenancy.central_domains')[0],
-        ]);
-        $user->tenants()->attach($tenant->id);
+        $user->tenants()->attach($this->tenant);
 
         Auth::login($user);
 
-        $this->redirectIntended('http://' . $this->subdomain . '.' . config('tenancy.central_domains')[0] . ':8000' . route('dashboard', absolute: false));
+        $this->redirectIntended(route('dashboard', absolute: false));
 
     }
+
+    public function mount()
+    {
+        $this->tenant = tenant('id'); // or any value you want
+    }
+
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Create a tenant')"
+    <x-auth-header :title="__('Create an account')"
                    :description="__('Enter your details below to create your account')"/>
 
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')"/>
 
     <form wire:submit="register" class="flex flex-col gap-6">
-
-        <!-- Subdomain -->
+        <!-- Tenant ID (hidden) -->
         <flux:input
-            wire:model="subdomain"
-            :label="__('Subdomain')"
-            type="text"
-            required
-            autofocus
-            autocomplete="subdomain"
-            :placeholder="__('Subdomain')"
+            wire:model="tenant"
+            type="hidden"
+            value="{{ tenant('id') }}"
         />
 
         <!-- Name -->

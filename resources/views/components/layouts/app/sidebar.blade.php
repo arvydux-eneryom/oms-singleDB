@@ -33,7 +33,7 @@
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
                 <flux:profile
                     :name="tenant('name')"
-                    :initials="'Zzz'"
+                    :initials="''"
                     icon:trailing="chevrons-up-down"
                 />
 
@@ -42,8 +42,8 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <span class="truncate font-semibold">aa</span>
-                                    <span class="truncate text-xs">rr{{ tenant('email') }}</span>
+                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                                 </div>
                             </div>
                         </div>

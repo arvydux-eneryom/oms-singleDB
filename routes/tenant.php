@@ -25,10 +25,33 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
 
+    Route::middleware('guest')->group(function () {
+        Volt::route('login', 'auth.login')
+            ->name('login');
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+        Volt::route('register', 'auth.tenant.register')
+            ->name('register');
+
+        Volt::route('forgot-password', 'auth.forgot-password')
+            ->name('password.request');
+
+        Volt::route('reset-password/{token}', 'auth.reset-password')
+            ->name('password.reset');
+
+        Route::redirect('/', 'login')->name('home');
+
+    });
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('dashboard');
+        })->name('dashboard');
+
+        Route::post('logout', App\Livewire\Actions\Logout::class)
+            ->name('logout');
+    });
+
+
 
 
         Route::redirect('settings', 'settings/profile');
