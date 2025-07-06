@@ -27,7 +27,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $validatedDomain = $this->validate([
+        $this->validate([
             'subdomain' => ['required', 'alpha', 'unique:domains,domain'],
         ]);
 
@@ -37,7 +37,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'name' => $this->name . ' system',
         ]);
 
-        event(new Registered(($user = User::create($validated + ['tenant_id' => $tenant->id]))));
+        event(new Registered(($user = User::create($validated))));
 
         $tenant->domains()->create([
             'domain' => $this->subdomain . '.' . config('tenancy.central_domains')[0],
@@ -46,8 +46,16 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         Auth::login($user);
 
-        $this->redirectIntended('http://' . $this->subdomain . '.' . config('tenancy.central_domains')[0] . ':8000' . route('dashboard', absolute: false));
+        $redirectUrl = $this->tenant_url($this->subdomain, route('dashboard', [], false));
+        $this->redirectIntended($redirectUrl);
+    }
 
+    private function tenant_url(string $subdomain, string $path = '', string $scheme = 'http'): string
+    {
+        $domain = config('tenancy.central_domains')[0];
+        $port = env('APP_PORT', '8000');
+
+        return "{$scheme}://{$subdomain}.{$domain}:{$port}/" . ltrim($path, '/');
     }
 }; ?>
 

@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -23,15 +24,21 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->where(),
+            ],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'tenant' => ['numeric']
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered(($user = User::create($validated + ['tenant_id' => $this->tenant]))));
-
+        event(new Registered(($user = User::create($validated ))));
         $user->tenants()->attach($this->tenant);
 
         Auth::login($user);
@@ -42,7 +49,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public function mount()
     {
-        $this->tenant = tenant('id'); // or any value you want
+        $this->tenant = tenant('id');
     }
 
 }; ?>

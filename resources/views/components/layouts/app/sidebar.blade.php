@@ -17,6 +17,14 @@
                 </flux:navlist.group>
             </flux:navlist>
 
+            <flux:navlist variant="outline">
+                <flux:navlist.group :heading="__('Super admin area')" class="grid">
+                    <flux:navlist.item icon="users" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    <flux:navlist.item icon="user-circle" :href="route('roles.index')" :current="request()->routeIs('roles.index')" wire:navigate>{{ __('Roles') }}</flux:navlist.item>
+                    <flux:navlist.item icon="adjustments-vertical" :href="route('permissions.index')" :current="request()->routeIs('permissions.index')" wire:navigate>{{ __('Permissions') }}</flux:navlist.item>
+                </flux:navlist.group>
+            </flux:navlist>
+
             <flux:spacer />
 
             <flux:navlist variant="outline">
