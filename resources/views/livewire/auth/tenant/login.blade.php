@@ -2,6 +2,7 @@
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -18,7 +19,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
     #[Validate('required|string')]
     public string $password = '';
 
+    public string $tenant = '';
     public bool $remember = false;
+    private bool $isLoggedUserBelongsToCurrentTenancy = false;
 
     /**
      * Handle an incoming authentication request.
@@ -29,7 +32,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['is_system' => true, 'email' => $this->email, 'password' => $this->password], $this->remember)) {
+        if (!Auth::attempt(['is_tenant' => true, 'email' => $this->email, 'password' => $this->password], $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -40,6 +43,22 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
+        $user = Auth::user();
+
+        $userTenantIds = $user->tenants()->pluck('id')->toArray();
+        $subdomainHost = request()->getHost(); // e.g. acme.localhost
+
+        $this->isLoggedUserBelongsToCurrentTenancy = DB::table('domains')->where('domain', $subdomainHost)
+            ->whereIn('tenant_id', $userTenantIds)->exists();
+
+        if (empty($userTenantIds) || !$this->isLoggedUserBelongsToCurrentTenancy) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => __('You are not authorized for this tenant.'),
+            ]);
+        }
+
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 
@@ -48,7 +67,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
      */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -69,15 +88,21 @@ new #[Layout('components.layouts.auth')] class extends Component {
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip());
+    }
+
+    public function mount()
+    {
+        $this->tenant = tenant('id'); // or any value you want
     }
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Log in to the system')" :description="__('Enter your email and password below to log in')" />
+    <x-auth-header :title="__('Log in to the tenancy')"
+                   :description="__('Enter your email and password below to log in')"/>
 
     <!-- Session Status -->
-    <x-auth-session-status class="text-center" :status="session('status')" />
+    <x-auth-session-status class="text-center" :status="session('status')"/>
 
     <form wire:submit="login" class="flex flex-col gap-6">
         <!-- Email Address -->
@@ -111,7 +136,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
 
         <!-- Remember Me -->
-        <flux:checkbox wire:model="remember" :label="__('Remember me')" />
+        <flux:checkbox wire:model="remember" :label="__('Remember me')"/>
 
         <div class="flex items-center justify-end">
             <flux:button variant="primary" type="submit" class="w-full">{{ __('Log in') }}</flux:button>
@@ -120,7 +145,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     @if (Route::has('register'))
         <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Don\'t have an account?') }}</span>
+            {{ __('Don\'t have an account?') }}
             <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
         </div>
     @endif

@@ -17,13 +17,9 @@ class CreateDomainsTable extends Migration
     {
         Schema::create('domains', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name', 255)->unique();
             $table->string('domain', 255)->unique();
-            $table->string('subdomain', 255)->unique();
             $table->foreignId('tenant_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->string('system_id');
-            // TODO later make "system_id" like below
-            //  $table->foreignId('system_id')->constrained();
+
             $table->timestamps();
         });
     }

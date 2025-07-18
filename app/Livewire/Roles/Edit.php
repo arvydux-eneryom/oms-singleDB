@@ -10,7 +10,6 @@ use Spatie\Permission\Models\Role;
 
 class Edit extends Component
 {
-    public string $tenant = '';
     public Role $role;
     public string $name = '';
     public Collection $permissions;
@@ -18,7 +17,6 @@ class Edit extends Component
 
     public function mount(Role $role)
     {
-        $this->tenant = tenant('id');
         $this->role = $role;
         $this->name = $role->name;
         $this->permissions = Permission::all();
@@ -34,7 +32,6 @@ class Edit extends Component
                 'max:255',
                 Rule::unique('roles', 'name')->ignore($this->role),
             ],
-            'tenant' => ['numeric']
         ]);
 
         $this->role->update([

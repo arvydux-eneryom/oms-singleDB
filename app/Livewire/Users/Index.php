@@ -31,15 +31,12 @@ class Index extends Component
         session()->flash('success', 'User successfully deleted.');
     }
 
-
-
     public function render()
     {
-        $tenant = Tenant::findOrFail($this->tenantId);
+      //  $tenant = Tenant::findOrFail($this->tenantId);
 
-        $users = $tenant
-            ->users()
-            ->with('roles', 'permissions')
+        $users = User::with('roles', 'permissions')
+            ->where('system_id', auth()->user()->system_id )
             ->paginate(5);
 
         return view('livewire.users.index', compact('users'));

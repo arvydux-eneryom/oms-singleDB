@@ -1,16 +1,19 @@
 <?php
 
+use App\Models\Company;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.auth')] class extends Component {
-    public string $subdomain = '';
     public string $name = '';
     public string $email = '';
     public string $password = '';
@@ -23,77 +26,85 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique(User::class)->where(fn($query) => $query->where('is_system', true)),
+            ],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        $this->validate([
-            'subdomain' => ['required', 'alpha', 'unique:domains,domain'],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        $tenant = Tenant::create([
-            'name' => $this->name . ' system',
+        event(new Registered(($user = User::create($validated + ['is_system' => true, 'system_id' => User::getNextSystemIdOrDefault()]))));
+        $user->assignRole('super-admin');
+
+        Company::create([
+            'name' => $validated['name'],
+            'user_id' => $user->id,
         ]);
 
-        event(new Registered(($user = User::create($validated))));
-
-        $tenant->domains()->create([
-            'domain' => $this->subdomain . '.' . config('tenancy.central_domains')[0],
-        ]);
-        $user->tenants()->attach($tenant->id);
+        $this->createRandomDomain($validated['name'], $user);
 
         Auth::login($user);
 
-        $redirectUrl = $this->tenant_url($this->subdomain, route('dashboard', [], false));
-        $this->redirectIntended($redirectUrl);
+        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
     }
 
-    private function tenant_url(string $subdomain, string $path = '', string $scheme = 'http'): string
+    private function createRandomDomain($companyName, User $user): void
     {
-        $domain = config('tenancy.central_domains')[0];
-        $port = env('APP_PORT', '8000');
+        $tenant = Tenant::create([
+            'name' => $companyName,
+        ]);
 
-        return "{$scheme}://{$subdomain}.{$domain}:{$port}/" . ltrim($path, '/');
+
+        $subdomainName = $this->randomString2to8();
+        $tenant->domains()->create([
+            'name' => $companyName,
+            'subdomain' => $subdomainName,
+            'domain' => $subdomainName . '.' . config('tenancy.central_domains')[0],
+            'system_id' => $user->system_id,
+        ]);
+
+        $user->is_tenant = true;
+        $user->save();
+
+        $user->tenants()->attach($tenant->id);
+    }
+
+    function randomString2to8(): string
+    {
+        $length = rand(2, 8);
+        return Str::random($length);
     }
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Create a tenant')"
+    <x-auth-header :title="__('Create a system account.')"
                    :description="__('Enter your details below to create your account')"/>
 
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')"/>
 
     <form wire:submit="register" class="flex flex-col gap-6">
-
-        <!-- Subdomain -->
-        <flux:input
-            wire:model="subdomain"
-            :label="__('Subdomain')"
-            type="text"
-            required
-            autofocus
-            autocomplete="subdomain"
-            :placeholder="__('Subdomain')"
-        />
-
         <!-- Name -->
         <flux:input
             wire:model="name"
-            :label="__('Name')"
+            :label="__('Company name')"
             type="text"
             required
             autofocus
             autocomplete="name"
-            :placeholder="__('Full name')"
+            :placeholder="__('Company name')"
         />
 
         <!-- Email Address -->
         <flux:input
             wire:model="email"
-            :label="__('Email address')"
+            :label="__('Email address (this will be your super admin account)')"
             type="email"
             required
             autocomplete="email"

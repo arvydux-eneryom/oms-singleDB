@@ -1,5 +1,5 @@
 <div>
-    <section>
+    <section class="max-w-2xl">
         <x-alerts.success />
 
         <div class="flex flex-grow gap-x-4 mb-4">

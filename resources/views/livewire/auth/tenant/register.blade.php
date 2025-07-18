@@ -2,6 +2,7 @@
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Rules\UniqueEmailInTenant;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +12,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.auth')] class extends Component {
+    public int $systemId = 0;
     public string $tenant = '';
     public string $name = '';
     public string $email = '';
@@ -30,15 +32,17 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 'lowercase',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->where(),
+                new UniqueEmailInTenant($this->tenant),
+
             ],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'tenant' => ['numeric']
+            'tenant' => ['numeric'],
+            'systemId' => ['numeric'],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered(($user = User::create($validated ))));
+        event(new Registered(($user = User::create($validated + ['is_tenant' => true, 'system_id' => $this->systemId]))));
         $user->tenants()->attach($this->tenant);
 
         Auth::login($user);
@@ -47,15 +51,28 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     }
 
+    private function getSystemId()
+    {
+        return User::find($this->getUserIdByTenant_id())->system_id;
+    }
+
+    private function getUserIdByTenant_id()
+    {
+        return User::whereHas('tenants', function ($query) {
+            $query->where('id', $this->tenant);
+        })->pluck('id')->first();
+    }
+
     public function mount()
     {
         $this->tenant = tenant('id');
+        $this->systemId =$this->getSystemId();
     }
 
 }; ?>
 
 <div class="flex flex-col gap-6">
-    <x-auth-header :title="__('Create an account')"
+    <x-auth-header :title="__('Create a tenant account')"
                    :description="__('Enter your details below to create your account')"/>
 
     <!-- Session Status -->
@@ -67,6 +84,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
             wire:model="tenant"
             type="hidden"
             value="{{ tenant('id') }}"
+        />
+
+        <!-- System ID (hidden) -->
+        <flux:input
+            wire:model="systemId"
+            type="hidden"
+            value="{{ $systemId }}"
         />
 
         <!-- Name -->

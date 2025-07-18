@@ -3,9 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -26,6 +26,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_system',
+        'is_tenant',
+        'system_id',
     ];
 
     /**
@@ -63,8 +66,38 @@ class User extends Authenticatable
             ->implode('');
     }
 
+    public static function getNextSystemIdOrDefault(): int
+    {
+        $max = self::max('system_id');
+        return $max ? $max + 1 : 1;
+    }
+
+    public  function isSystem(): bool
+    {
+        return $this->is_system;
+    }
+
+    public function isTenant(): bool
+    {
+        return $this->is_tenant;
+    }
+
+    public function company(): HasOne
+    {
+        return $this->hasOne(Company::class);
+    }
+
     public function tenants(): BelongsToMany
     {
         return $this->belongsToMany(Tenant::class);
+    }
+
+    public function domains()
+    {
+        return $this->hasMany(Domain::class);
+/*        return $this->hasMany(Domain::class)
+            ->whereHas('user', function ($query) {
+                $query->where('is_system', true);
+            });*/
     }
 }

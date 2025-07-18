@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Livewire\Volt\Volt;
-use App\Livewire\Users;
-use App\Livewire\Roles;
-use App\Livewire\Permissions;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +27,7 @@ Route::middleware([
 ])->group(function () {
 
     Route::middleware('guest')->group(function () {
-        Volt::route('login', 'auth.login')
+        Volt::route('login', 'auth.tenant.login')
             ->name('login');
 
         Volt::route('register', 'auth.tenant.register')
@@ -45,24 +43,20 @@ Route::middleware([
 
     });
 
+    Route::get('auto-login', [AuthController::class, 'autoLogin'])
+        ->name('auto-login')
+        ->middleware('signed');;
+
+    Route::domain('{subdomain}.localhost')
+        ->middleware(['signed'])
+        ->get('/auto-login', [AuthController::class, 'autoLogin'])
+        ->name('auto-login');
+
     Route::middleware('auth')->group(function () {
         Route::get('/dashboard', function () {
             return view('dashboard');
         })->name('dashboard');
 
-        //Route::resource('roles', RoleController::class);
-       // Route::resource('users', UserController::class);
-        Route::get('users', Users\Index::class)->name('users.index');
-        Route::get('users/create', Users\Create::class)->name('users.create');
-        Route::get('users/{user}/edit', Users\Edit::class)->name('users.edit');
-
-        Route::get('roles', Roles\Index::class)->name('roles.index');
-        Route::get('roles/create', Roles\Create::class)->name('roles.create');
-        Route::get('roles/{role}/edit', Roles\Edit::class)->name('roles.edit');
-
-        Route::get('permissions', Permissions\Index::class)->name('permissions.index');
-        Route::get('permissions/create', Permissions\Create::class)->name('permissions.create');
-        Route::get('permissions/{permission}/edit', Permissions\Edit::class)->name('permissions.edit');
 
         Route::post('logout', App\Livewire\Actions\Logout::class)
             ->name('logout');

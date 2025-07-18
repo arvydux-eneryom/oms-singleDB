@@ -15,14 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email');
+            //$table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->boolean('is_system')->default(false);
-            $table->boolean('is_tenant')->default(false);
-            $table->string('system_id');
-            // TODO later make "system_id" like below
-            //  $table->foreignId('system_id')->constrained();
             $table->timestamps();
         });
 

@@ -3,13 +3,6 @@
         <flux:heading size="xl" class="mb-3">Create user</flux:heading>
 
         <form wire:submit="save" class="flex flex-col gap-6">
-            <!-- Tenant ID (hidden) -->
-            <flux:input
-                wire:model="tenant"
-                type="hidden"
-                value="{{ tenant('id') }}"
-            />
-
             <flux:input
                 wire:model="name"
                 :label="__('User Name')"
@@ -35,6 +28,13 @@
             <flux:select wire:model="userRoles" :label="__('Role')" placeholder="Choose role...">
                 @foreach ($roles as $value => $label)
                     <flux:select.option>{{ $label }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            <flux:select wire:model="assignedSubdomain" :label="__('Subdomains')" placeholder="Choose subdomain to assign...">
+                <flux:select.option value="">{{ __('Choose subdomain to assign...') }}</flux:select.option>
+                @foreach ($this->notAssignedSubdomains as $value => $label)
+                    <flux:select.option value="{{ $value }}">{{ $label }}</flux:select.option>
                 @endforeach
             </flux:select>
 

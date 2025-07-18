@@ -19,6 +19,9 @@
                         Email
                     </th>
                     <th scope="col" class="px-6 py-3">
+                        Access to domains
+                    </th>
+                    <th scope="col" class="px-6 py-3">
                         Roles
                     </th>
                     <th scope="col" class="px-6 py-3">
@@ -35,6 +38,26 @@
                             </th>
                             <td class="px-6 py-4">
                                 {{ $user->email }}
+                            </td>
+                            <td class="px-6 py-4">
+                                @if(!empty($user->tenants) && $user->tenants->count() > 0)
+                                    {{-- Display domains for each tenant --}}
+                                    @foreach($user->tenants as $tenant)
+                                        <ul class="list-none">
+                                            @foreach($tenant->domains as $domain)
+                                                <li class="inline-flex items-center px-2.5 py-0.5 rounded-full font-medium text-gray-900">
+                   {{--                                 <a href="{{ url('http://' . $subdomain->domain) . ':8000' }}"
+                                                       target="_blank">{{ 'http://' . $subdomain->domain  . ':8000'}}</a>--}}
+                                                    {{ \App\Models\Domain::where('tenant_id', $tenant->id)->first()->domain }}
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endforeach
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-medium bg-red-100 text-red-800">
+                                        No domains assigned
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
                                 @if(!empty($user->getRoleNames()))
