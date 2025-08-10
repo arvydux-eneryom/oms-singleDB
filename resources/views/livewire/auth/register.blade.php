@@ -3,10 +3,11 @@
 use App\Models\Company;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\RedirectionToSubdomainService;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
@@ -40,7 +41,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered(($user = User::create($validated + ['is_system' => true, 'system_id' => User::getNextSystemIdOrDefault()]))));
-        $user->assignRole('super-admin');
+        $user->assignRole('super-admin-for-tenant');
 
         Company::create([
             'name' => $validated['name'],
@@ -49,9 +50,18 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $this->createRandomDomain($validated['name'], $user);
 
+        $this->logOut();
         Auth::login($user);
 
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
+        RedirectionToSubdomainService::redirectToSubdomain();
+    }
+
+    private function logOut(): void
+    {
+        Auth::guard('web')->logout();
+
+        Session::invalidate();
+        Session::regenerateToken();
     }
 
     private function createRandomDomain($companyName, User $user): void

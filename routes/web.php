@@ -18,6 +18,7 @@ Route::view('dashboard', 'dashboard')
 
 Route::middleware(['auth'])->group(function () {
     Route::get('subdomains', Subdomains\Index::class)->name('subdomains.index');
+    Route::get('subdomains/redirect', Subdomains\Redirect::class)->name('subdomains.redirect'); //temporary
     Route::get('subdomains/create', Subdomains\Create::class)->name('subdomains.create');
     Route::get('subdomains/{subdomain}/edit', Subdomains\Edit::class)->name('subdomains.edit');
 

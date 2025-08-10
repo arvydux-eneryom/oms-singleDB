@@ -20,9 +20,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->boolean('is_system')->default(false);
             $table->boolean('is_tenant')->default(false);
-            $table->string('system_id');
-            // TODO later make "system_id" like below
-            //  $table->foreignId('system_id')->constrained();
+            $table->integer('system_id');
             $table->timestamps();
         });
 

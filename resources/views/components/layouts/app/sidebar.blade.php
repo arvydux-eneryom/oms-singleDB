@@ -34,6 +34,7 @@
                                    :current="request()->routeIs('subdomains.index')"
                                    wire:navigate>{{ __('Subdomains') }}</flux:navlist.item>
 
+                @if(auth()->user() && auth()->user()->hasRole('super-admin-for-system'))
                 <flux:navlist.item icon="users" :href="route('users.index')"
                                    :current="request()->routeIs('users.index')"
                                    wire:navigate>{{ __('Users') }}</flux:navlist.item>
@@ -45,21 +46,24 @@
                 <flux:navlist.item icon="adjustments-vertical" :href="route('permissions.index')"
                                    :current="request()->routeIs('permissions.index')"
                                    wire:navigate>{{ __('Permissions') }}</flux:navlist.item>
+                @endif
             </flux:navlist.group>
+        @else
+            <flux:navlist.item icon="user-circle" :href="route('roles.index')"
+                               :current="request()->routeIs('roles.index')"
+                               wire:navigate>{{ __('Roles') }}</flux:navlist.item>
         @endif
     </flux:navlist>
 
     <flux:spacer/>
 
-    <flux:navlist variant="outline">
-        <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-            {{ __('Repository') }}
-        </flux:navlist.item>
-
-        <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-            {{ __('Documentation') }}
-        </flux:navlist.item>
-    </flux:navlist>
+    @if(tenant() && auth()->user()->hasRole('super-admin-for-tenant'))
+        <flux:navlist variant="outline">
+            <flux:navlist.item icon="book-open-text" href="{{request()->getScheme() . '://' }}localhost:{{ request()->getPort() . '/dashboard'}}"  target="_blank">
+                {{ __('My account') }}
+            </flux:navlist.item>
+        </flux:navlist>
+    @endif
 
     <!-- Desktop User Menu -->
     <flux:dropdown class="hidden lg:block" position="bottom" align="start">

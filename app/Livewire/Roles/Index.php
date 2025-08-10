@@ -23,7 +23,8 @@ class Index extends Component
 
     public function render()
     {
-        $roles = Role::all();
+        $roles = Role::where('is_system', true)
+            ->get();
 
         return view('livewire.roles.index', compact('roles'));
     }
