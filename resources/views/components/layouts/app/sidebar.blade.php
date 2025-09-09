@@ -52,6 +52,10 @@
             <flux:navlist.item icon="user-circle" :href="route('roles.index')"
                                :current="request()->routeIs('roles.index')"
                                wire:navigate>{{ __('Roles') }}</flux:navlist.item>
+
+            <flux:navlist.item icon="user-circle" :href="route('customers.index')"
+                               :current="request()->routeIs('customers.index')"
+                               wire:navigate>{{ __('Customers') }}</flux:navlist.item>
         @endif
     </flux:navlist>
 

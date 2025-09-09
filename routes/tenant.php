@@ -8,6 +8,8 @@ use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 use Livewire\Volt\Volt;
 
+use App\Livewire\Roles;
+use App\Livewire\Tenancy;
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -45,7 +47,7 @@ Route::middleware([
 
     Route::get('auto-login', [AuthController::class, 'autoLogin'])
         ->name('auto-login')
-        ->middleware('signed');;
+        ->middleware('signed');
 
     Route::domain('{subdomain}.localhost')
         ->middleware(['signed'])
@@ -57,12 +59,20 @@ Route::middleware([
             return view('dashboard');
         })->name('dashboard');
 
+        Route::get('customers', Tenancy\Customers\Index::class)->name('customers.index');
+        Route::get('customers/create', Tenancy\Customers\Create::class)->name('customers.create');
+        Route::get('customers/{customer}/edit', Tenancy\Customers\Edit::class)->name('customers.edit');
+        Route::get('customers/{customer}', Tenancy\Customers\View::class)->name('customers.show');
+        Route::delete('customers/{customer}', Tenancy\Customers\Delete::class)->name('customers.delete');
 
         Route::post('logout', App\Livewire\Actions\Logout::class)
             ->name('logout');
     });
 
 
+    Route::get('roles', Roles\Index::class)->name('roles.index');
+    Route::get('roles/create', Roles\Create::class)->name('roles.create');
+    Route::get('roles/{role}/edit', Roles\Edit::class)->name('roles.edit');
 
 
         Route::redirect('settings', 'settings/profile');
