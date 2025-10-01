@@ -1,0 +1,30 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - bootstrap
+        - config
+        - database
+        - resources
+        - routes
+
+    # Level 9 is the highest level (0-9)
+    # Start with level 5 and gradually increase
+    level: 5
+
+    ignoreErrors:
+        # Ignore Livewire dynamic properties
+        - '#Access to an undefined property Livewire\\Component::\$.*#'
+        # Ignore Volt-specific errors if needed
+        - '#Function state not found\.#'
+
+    excludePaths:
+        - vendor
+        - node_modules
+        - storage
+        - bootstrap/cache
+
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

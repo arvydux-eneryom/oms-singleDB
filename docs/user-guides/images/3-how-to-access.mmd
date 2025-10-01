@@ -1,0 +1,19 @@
+flowchart TD
+    Start["👤 You are logged in"]
+
+    Start --> Choice{"What do you<br/>want to do?"}
+
+    Choice -->|Create/Manage Companies| Central["Go to:<br/>🌐 localhost"]
+    Choice -->|Work in Company A| CompanyA["Go to:<br/>🏢 companya.localhost"]
+    Choice -->|Work in Company B| CompanyB["Go to:<br/>🏢 companyb.localhost"]
+
+    Central --> CentralActions["📋 Actions:<br/>• Create new company<br/>• View all your companies<br/>• Manage settings"]
+
+    CompanyA --> CompanyAActions["📋 Actions:<br/>• Access Company A data<br/>• Manage Company A users<br/>• Company A dashboard"]
+
+    CompanyB --> CompanyBActions["📋 Actions:<br/>• Access Company B data<br/>• Manage Company B users<br/>• Company B dashboard"]
+
+    style Start fill:#e1f5ff
+    style Central fill:#e8f5e9
+    style CompanyA fill:#fff4e1
+    style CompanyB fill:#fff4e1

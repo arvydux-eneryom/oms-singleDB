@@ -1,0 +1,30 @@
+graph TB
+    subgraph Company_A["🏢 Company A (companya.localhost)"]
+        UserA["👤 John (Admin)"]
+        DataA["📊 Company A sees ONLY:<br/>• Their customers<br/>• Their orders<br/>• Their employees"]
+    end
+
+    subgraph Company_B["🏢 Company B (companyb.localhost)"]
+        UserB["👤 Sarah (Manager)"]
+        DataB["📊 Company B sees ONLY:<br/>• Their customers<br/>• Their orders<br/>• Their employees"]
+    end
+
+    subgraph Company_C["🏢 Company C (companyc.localhost)"]
+        UserC["👤 Mike (User)"]
+        DataC["📊 Company C sees ONLY:<br/>• Their customers<br/>• Their orders<br/>• Their employees"]
+    end
+
+    Lock1["🔒 Cannot see<br/>other companies"]
+    Lock2["🔒 Cannot see<br/>other companies"]
+    Lock3["🔒 Cannot see<br/>other companies"]
+
+    Company_A -.->|blocked| Lock1
+    Company_B -.->|blocked| Lock2
+    Company_C -.->|blocked| Lock3
+
+    style Company_A fill:#fff4e1
+    style Company_B fill:#e1f5ff
+    style Company_C fill:#e8f5e9
+    style Lock1 fill:#ffebee
+    style Lock2 fill:#ffebee
+    style Lock3 fill:#ffebee

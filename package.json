@@ -3,7 +3,15 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "lint": "npm run lint:js && npm run lint:prettier",
+        "lint:js": "eslint resources/js/**/*.js",
+        "lint:blade": "blade-formatter --check resources/**/*.blade.php",
+        "lint:prettier": "prettier --check resources/js/**/*.js resources/css/**/*.css",
+        "format": "npm run format:js && npm run format:blade && npm run format:prettier",
+        "format:js": "eslint --fix resources/js/**/*.js",
+        "format:blade": "blade-formatter --write resources/**/*.blade.php",
+        "format:prettier": "prettier --write resources/js/**/*.js resources/css/**/*.css"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.0.7",
@@ -11,6 +19,7 @@
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.0",
+        "puppeteer": "^24.24.0",
         "tailwindcss": "^4.0.7",
         "vite": "^6.0"
     },
@@ -18,5 +27,14 @@
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.37.0",
+        "blade-formatter": "^1.44.2",
+        "eslint": "^9.37.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.4",
+        "globals": "^16.4.0",
+        "prettier": "^3.6.2"
     }
 }

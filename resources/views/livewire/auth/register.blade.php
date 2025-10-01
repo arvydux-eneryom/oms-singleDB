@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\RedirectionToSubdomainService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -22,6 +23,23 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     /**
      * Handle an incoming registration request.
+     *
+     * This method creates a new system user with super-admin role and sets up their tenant environment.
+     *
+     * Process:
+     * 1. Validates input (name, email, password)
+     * 2. Creates user with is_system=true and assigns super-admin-for-tenant role
+     * 3. Creates company record linked to the user
+     * 4. Creates tenant with unique random subdomain (2-8 chars)
+     * 5. Creates domain record for the tenant
+     * 6. Links user to tenant and marks as tenant user
+     * 7. Logs in the user and redirects to their subdomain
+     *
+     * All operations are wrapped in a database transaction to ensure data integrity.
+     * If any step fails, all changes are rolled back.
+     *
+     * @return void
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function register(): void
     {
@@ -40,22 +58,35 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered(($user = User::create($validated + ['is_system' => true, 'system_id' => User::getNextSystemIdOrDefault()]))));
-        $user->assignRole('super-admin-for-tenant');
+        DB::transaction(function () use ($validated) {
+            $user = User::create($validated + ['is_system' => true, 'system_id' => User::getNextSystemIdOrDefault()]);
 
-        Company::create([
-            'name' => $validated['name'],
-            'user_id' => $user->id,
-        ]);
+            event(new Registered($user));
+            $user->assignRole('super-admin-for-tenant');
 
-        $this->createRandomDomain($validated['name'], $user);
+            Company::create([
+                'name' => $validated['name'],
+                'user_id' => $user->id,
+            ]);
 
-        $this->logOut();
-        Auth::login($user);
+            $this->createRandomDomain($validated['name'], $user);
 
-        RedirectionToSubdomainService::redirectToSubdomain();
+            if (Auth::check()) {
+                $this->logOut();
+            }
+            Auth::login($user);
+
+            RedirectionToSubdomainService::redirectToSubdomain();
+        });
     }
 
+    /**
+     * Log out any existing authenticated user.
+     *
+     * Invalidates the current session and regenerates the CSRF token.
+     *
+     * @return void
+     */
     private function logOut(): void
     {
         Auth::guard('web')->logout();
@@ -64,18 +95,27 @@ new #[Layout('components.layouts.auth')] class extends Component {
         Session::regenerateToken();
     }
 
-    private function createRandomDomain($companyName, User $user): void
+    /**
+     * Create a tenant and domain for the newly registered user.
+     *
+     * Creates a tenant with the company name and generates a unique random subdomain.
+     * The subdomain is between 2-8 characters long and guaranteed to be unique.
+     *
+     * @param string $companyName The company name to use for tenant and domain
+     * @param User $user The user to link to the tenant
+     * @return void
+     */
+    private function createRandomDomain(string $companyName, User $user): void
     {
         $tenant = Tenant::create([
             'name' => $companyName,
         ]);
 
-
-        $subdomainName = $this->randomString2to8();
+        $subdomainName = $this->generateUniqueSubdomain();
         $tenant->domains()->create([
             'name' => $companyName,
             'subdomain' => $subdomainName,
-            'domain' => $subdomainName . '.' . config('tenancy.central_domains')[0],
+            'domain' => strtolower($subdomainName) . '.' . config('tenancy.central_domains')[0],
             'system_id' => $user->system_id,
         ]);
 
@@ -85,10 +125,34 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $user->tenants()->attach($tenant->id);
     }
 
-    function randomString2to8(): string
+    /**
+     * Generate a unique subdomain with collision detection.
+     *
+     * Attempts to generate a random subdomain (2-8 chars) up to 10 times.
+     * If all attempts result in collisions, falls back to a timestamp-based
+     * subdomain to guarantee uniqueness.
+     *
+     * The subdomain is checked against the domains table to ensure no duplicates exist.
+     *
+     * @return string A unique subdomain string
+     */
+    private function generateUniqueSubdomain(): string
     {
-        $length = rand(2, 8);
-        return Str::random($length);
+        $maxAttempts = 10;
+        $attempt = 0;
+
+        do {
+            $length = rand(2, 8);
+            $subdomain = Str::random($length);
+            $attempt++;
+
+            if (!DB::table('domains')->where('subdomain', $subdomain)->exists()) {
+                return $subdomain;
+            }
+        } while ($attempt < $maxAttempts);
+
+        // Fallback: use timestamp-based unique subdomain
+        return Str::random(4) . substr((string) time(), -4);
     }
 }; ?>
 

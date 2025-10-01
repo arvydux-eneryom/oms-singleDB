@@ -61,9 +61,9 @@
 
     <flux:spacer/>
 
-    @if(tenant() && auth()->user()->hasRole('super-admin-for-tenant'))
+    @if(tenant() && auth()->user()->hasRole('super-admin-for-system'))
         <flux:navlist variant="outline">
-            <flux:navlist.item icon="book-open-text" href="{{request()->getScheme() . '://' }}localhost:{{ request()->getPort() . '/dashboard'}}"  target="_blank">
+            <flux:navlist.item icon="book-open-text" href="{{ config('app.url') . '/dashboard' }}" target="_blank">
                 {{ __('My account') }}
             </flux:navlist.item>
         </flux:navlist>

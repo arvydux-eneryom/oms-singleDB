@@ -1,0 +1,18 @@
+graph TD
+    Building["🏢 OMS Application<br/>(One Building)"]
+
+    Building --> Apartment1["🏠 Company A<br/>companya.localhost"]
+    Building --> Apartment2["🏠 Company B<br/>companyb.localhost"]
+    Building --> Apartment3["🏠 Company C<br/>companyc.localhost"]
+
+    Apartment1 --> Data1["📦 Company A's Data<br/>✓ Customers<br/>✓ Orders<br/>✓ Users"]
+    Apartment2 --> Data2["📦 Company B's Data<br/>✓ Customers<br/>✓ Orders<br/>✓ Users"]
+    Apartment3 --> Data3["📦 Company C's Data<br/>✓ Customers<br/>✓ Orders<br/>✓ Users"]
+
+    style Building fill:#e3f2fd
+    style Apartment1 fill:#fff4e1
+    style Apartment2 fill:#fff4e1
+    style Apartment3 fill:#fff4e1
+    style Data1 fill:#e8f5e9
+    style Data2 fill:#e8f5e9
+    style Data3 fill:#e8f5e9

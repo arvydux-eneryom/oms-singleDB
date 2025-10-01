@@ -1,0 +1,20 @@
+graph LR
+    subgraph "👤 User Types"
+        Admin["👨‍💼 System Admin<br/>Can create companies"]
+        Manager["👔 Company Manager<br/>Works in one company"]
+        Multi["🎭 Multi-Company User<br/>Works in several companies"]
+    end
+
+    subgraph "🖥️ What They Can Do"
+        AdminCan["✓ Create new companies<br/>✓ Manage subdomains<br/>✓ Access all their companies"]
+        ManagerCan["✓ Access only their company<br/>✓ Manage company users<br/>✓ Work with company data"]
+        MultiCan["✓ Switch between companies<br/>✓ Different role in each<br/>✓ One login, many companies"]
+    end
+
+    Admin --> AdminCan
+    Manager --> ManagerCan
+    Multi --> MultiCan
+
+    style Admin fill:#e1f5ff
+    style Manager fill:#fff4e1
+    style Multi fill:#e8f5e9
