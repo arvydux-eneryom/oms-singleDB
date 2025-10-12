@@ -29,7 +29,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'system_id' => 1,
+            'system_id' => 1, // Default system ID for testing
             'is_tenant' => true,
         ];
     }

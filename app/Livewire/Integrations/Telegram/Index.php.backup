@@ -1,0 +1,599 @@
+<?php
+
+namespace App\Livewire\Integrations\Telegram;
+
+use App\Models\TelegramSession;
+use App\Repositories\TelegramSessionRepository;
+use danog\MadelineProto\API;
+use danog\MadelineProto\RPCError\FloodWaitError;
+use danog\MadelineProto\Settings;
+use danog\MadelineProto\Settings\AppInfo;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Livewire\Component;
+
+class Index extends Component
+{
+    // TODO later move all this code to separate telegram service
+    public int $telegramAuthState = 0; //  0 - not logged in, 1 - waiting code, 3 - logged in, 4 - logged out
+    public $channels = [];
+    public string $qrSvg = '';
+    protected array $userSessions = [];
+    public ?array $telegramLoggedUserData = [];
+    public string $phone = '';
+    public int $loginCode;
+
+    protected TelegramSessionRepository $sessionRepository;
+    protected ?TelegramSession $currentSession = null;
+
+    public string $title = '';
+    public string $description = '';
+
+    protected $rules = [
+        'title' => 'required|string|max:128',
+        'description' => 'required|string|max:255',
+    ];
+
+    public function boot(): void
+    {
+        $this->sessionRepository = new TelegramSessionRepository();
+    }
+
+    public function mount()
+    {
+        $this->checkTelegramSessionForUserByEmail();
+    }
+
+    public function checkTelegramSessionForUserByEmail()
+    {
+        try {
+            // Try to get existing active session from database
+            $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
+
+            if ($this->currentSession && $this->currentSession->isValid()) {
+                // Initialize MadelineProto with existing secure session
+                if (!isset($this->userSessions[Auth::id()])) {
+                    $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+                }
+
+                // Update last activity timestamp
+                $this->sessionRepository->updateActivity($this->currentSession);
+
+                if ($this->isAuthorized()) {
+                    $this->getTelegramLoggedUserData();
+                } else {
+                    $this->showTelegramLogin();
+                }
+            } else {
+                // No valid session found, show login
+                $this->showTelegramLogin();
+            }
+        } catch (\Throwable $e) {
+            Log::error('Telegram session check failed: ' . $e->getMessage(), [
+                'user_id' => Auth::id() ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            session()->flash('error', 'Telegram session check failed. Please try logging in again.');
+        }
+    }
+
+    public function getTelegramChannels()
+    {
+        try {
+            if (!isset($this->userSessions[Auth::id()])) {
+                $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            }
+            $dialogs = $this->userSessions[Auth::id()]->messages->getDialogs();
+            $channels = [];
+
+            foreach ($dialogs['chats'] ?? [] as $chat) {
+                if (
+                    isset($chat['_']) &&
+                    ($chat['_'] === 'channel' || $chat['_'] === 'chat' || $chat['_'] === 'supergroup')
+                ) {
+                    $channels[] = [
+                        'id' => $chat['id'],
+                        'title' => $chat['title'] ?? '',
+                        'username' => $chat['username'] ?? '',
+                        'type' => $chat['_'],
+                    ];
+                }
+            }
+            $this->channels = $channels;
+        } catch (\Throwable $e) {
+            Log::error('Failed to get Telegram channels: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            session()->flash('error', 'Failed to get Telegram channels: ' . $e->getMessage());
+            $this->channels = [];
+        }
+    }
+
+    public function getQrCode()
+    {
+        try {
+            if (!isset($this->userSessions[Auth::id()])) {
+                $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            }
+
+            if ($this->userSessions[Auth::id()]->getAuthorization() === API::LOGGED_IN) {
+                $this->mount();
+            }
+
+            if ($this->userSessions[Auth::id()]->getAuthorization() !== API::WAITING_CODE) {
+                $qrLogin = $this->userSessions[Auth::id()]->qrLogin();
+                if ($qrLogin) {
+                    $qrSvg = $qrLogin->getQRSvg(200, 2);
+                }
+                $this->qrSvg = $qrSvg;
+            }
+
+
+        } catch (\Throwable $e) {
+            Log::error($e->getMessage());
+            session()->flash('error', 'Failed to get QR code.');
+        }
+    }
+
+    public function sendPhoneNumber()
+    {
+        $this->phone = preg_replace('/\s+/', '', $this->phone); // Remove spaces
+        $this->validate([
+            'phone' => ['required', 'regex:/^\+\d{10,15}$/'], // E.164 format
+        ]);
+
+        try {
+            $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            $result = $this->userSessions[Auth::id()]->phoneLogin($this->phone);
+
+            // Check the actual result from phoneLogin
+            if ($result === false) {
+                session()->flash('error', 'Failed to initiate phone login. Please check your phone number.');
+                return;
+            }
+
+            // If result is an integer (auth state), check if already logged in
+            if ($result === API::LOGGED_IN) {
+                // Already logged in without needing a code
+                $this->mount();
+                session()->flash('success', 'Successfully logged in to Telegram.');
+            } else {
+                // Code required - user will be prompted to enter it
+                session()->flash('message', 'Verification code sent. Please check your Telegram app.');
+            }
+        } catch (FloodWaitError $e) {
+            Log::warning('FloodWaitError: Too many requests. Wait time: ' . $e->getWaitTime() . ' seconds.', [
+                'phone' => $this->phone,
+                'user' => Auth::id() ?? null,
+            ]);
+            session()->flash('error', 'Too many requests. Please wait ' . $e->getWaitTime() . ' seconds and try again.');
+        } catch (\RuntimeException $e) {
+            Log::error('RuntimeException during phone login: ' . $e->getMessage(), [
+                'phone' => $this->phone,
+                'user' => Auth::id() ?? null,
+            ]);
+            session()->flash('error', 'An error occurred during phone login. Please try again later.');
+        } catch (\Throwable $e) {
+            Log::critical('Unexpected error during phone login: ' . $e->getMessage(), [
+                'phone' => $this->phone,
+                'user' => Auth::id() ?? null,
+            ]);
+            session()->flash('error', 'An unexpected error occurred. Please contact support.');
+        }
+    }
+
+    public function sendCompletePhoneLogin()
+    {
+        $this->validate(['loginCode' => ['required', 'digits:5']]);
+
+        try {
+            $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            $result = $this->userSessions[Auth::id()]->completePhoneLogin($this->loginCode);
+
+            if ($result === false) {
+                session()->flash('error', 'Invalid code or login failed. Please try again.');
+                $this->mount(); // Refresh state;
+            }
+
+            if ($this->isAuthorized()) {
+                $this->getTelegramLoggedUserData();
+                session()->flash('message', 'Successfully logged in to Telegram.');
+                $this->mount(); // Refresh state
+            } else {
+                session()->flash('error', 'Login was not successful. Please try again.');
+                $this->mount(); // Refresh state
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error during completePhoneLogin: ' . $e->getMessage());
+            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            $this->mount(); // Refresh state
+        }
+    }
+
+    public function establishTelegramSession(): void
+    {
+        $this->terminateSession();
+
+        try {
+            $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            $result = $this->userSessions[Auth::id()]->phoneLogin($this->phone);
+            if ($result === false) {
+                session()->flash('error', 'Failed to initiate phone login. Please check your phone number.');
+            }
+            session()->put(Auth::id() . '-phone', $this->phone);
+        } catch (\RuntimeException $e) {
+            $this->terminateSession();
+            Log::error($e->getMessage());
+            session()->flash('error', $e->getMessage());
+            $this->render();
+        } catch (FloodWaitError $e) {
+            Log::error($e->getMessage());
+            session()->flash('error', 'Too much the same phone number requests. ("FloodWaitError") Please wait ' . $e->getWaitTime() . ' seconds.');
+            $this->render();
+        }
+    }
+
+    public function terminateSession(): void
+    {
+        try {
+            // Deactivate all sessions for the current user (using secure repository)
+            $this->sessionRepository->deactivateUserSessions(Auth::id());
+
+            // Clear the current session reference
+            $this->currentSession = null;
+            unset($this->userSessions[Auth::id()]);
+
+            Log::info('Telegram session terminated', [
+                'user_id' => Auth::id(),
+            ]);
+
+            session()->flash('message', 'Session has been terminated successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to terminate session: ' . $e->getMessage(), [
+                'user_id' => Auth::id() ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            session()->flash('error', 'Failed to terminate session. Please try again.');
+        }
+    }
+
+    public function logoutFromTelegram()
+    {
+        try {
+            // Immediately terminate the local session (instant response)
+            $this->terminateSession();
+
+            // Clear the in-memory session
+            $this->currentSession = null;
+            unset($this->userSessions[Auth::id()]);
+
+            // Reset state to force re-render to login page
+            $this->telegramAuthState = 0;
+            $this->telegramLoggedUserData = null;
+            $this->channels = [];
+
+            session()->flash('success', 'Logged out successfully.');
+
+            // Redirect immediately to refresh the page
+            return $this->redirect(route('integrations.telegram.index'), navigate: true);
+
+        } catch (\Throwable $e) {
+            Log::error('Error during logout: ' . $e->getMessage(), [
+                'user_id' => Auth::id() ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Still try to terminate session even on error
+            try {
+                $this->terminateSession();
+            } catch (\Throwable $innerException) {
+                Log::error('Failed to terminate session during error handling: ' . $innerException->getMessage());
+            }
+
+            $this->currentSession = null;
+            unset($this->userSessions[Auth::id()]);
+
+            $this->telegramAuthState = 0;
+            $this->telegramLoggedUserData = null;
+            $this->channels = [];
+
+            session()->flash('message', 'Logged out locally.');
+            return $this->redirect(route('integrations.telegram.index'), navigate: true);
+        }
+    }
+
+    protected function safeLogout(): void
+    {
+        try {
+            if (isset($this->userSessions[Auth::id()])) {
+                $this->userSessions[Auth::id()]->logout();
+                Log::info('Successfully logged out from Telegram server', [
+                    'user_id' => Auth::id(),
+                ]);
+                session()->flash('success', 'Logged out from Telegram successfully.');
+            }
+        } catch (\danog\MadelineProto\RPCErrorException $e) {
+            // RPC error - connection issue or invalid session
+            Log::warning('RPC error during Telegram logout: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+            ]);
+        } catch (\Throwable $e) {
+            // Any other error - just log it
+            Log::warning('Error during Telegram logout: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+            ]);
+        }
+    }
+
+    public function createChannel()
+    {
+        // Validate inputs
+        $this->validate([
+            'title' => ['required', 'string', 'min:1', 'max:128'],
+            'description' => ['required', 'string', 'min:1', 'max:255'],
+        ]);
+
+        // Sanitize inputs
+        $this->title = trim(strip_tags($this->title));
+        $this->description = trim(strip_tags($this->description));
+
+        $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+        if (!$this->userSessions[Auth::id()]) {
+            session()->flash('error', 'Session is lost. Recreate it again.');
+            return redirect()->intended(route('integrations.telegram.index', absolute: false));
+        }
+
+        try {
+            $result = $this->userSessions[Auth::id()]->channels->createChannel([
+                'broadcast' => true,
+                'megagroup' => false,
+                'title' => $this->title,
+                'about' => $this->description,
+            ]);
+
+            $channelId = $result['updates'][1]['channel_id'] ?? null;
+            if (!$channelId) {
+                session()->flash('error', 'Failed to get channel ID.');
+                $this->mount();
+            }
+
+            $this->title = '';
+            $this->description = '';
+
+            session()->flash('message', 'Channel created successfully!');
+            $this->getTelegramChannels(); // Refresh the list
+        } catch (\Throwable $e) {
+            Log::error('Channel creation failed: ' . $e->getMessage());
+            session()->flash('error', 'Channel creation failed: ' . $e->getMessage());
+            $this->mount();
+        }
+    }
+
+    public function sendChannelInviteToUser($channelId, $telegramUsername)
+    {
+        // Validate channel ID
+        if (!is_numeric($channelId)) {
+            session()->flash('error', 'Invalid channel ID.');
+            return;
+        }
+
+        // Validate and sanitize telegram username
+        $telegramUsername = trim($telegramUsername);
+
+        if (empty($telegramUsername)) {
+            session()->flash('error', 'Please provide a Telegram username.');
+            return;
+        }
+
+        // Remove @ symbol if present
+        $telegramUsername = ltrim($telegramUsername, '@');
+
+        // Validate username format: alphanumeric and underscores only, 5-32 characters
+        if (!preg_match('/^[a-zA-Z0-9_]{5,32}$/', $telegramUsername)) {
+            session()->flash('error', 'Invalid Telegram username format. Use only letters, numbers, and underscores (5-32 characters).');
+            return;
+        }
+
+        try {
+            $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+
+            // 1. Generate invite link
+            $invite = $this->userSessions[Auth::id()]->messages->exportChatInvite([
+                'peer' => $channelId,
+            ]);
+            $inviteLink = $invite['link'] ?? null;
+
+            if (!$inviteLink) {
+                session()->flash('error', 'Failed to generate invite link.');
+                return;
+            }
+
+            // 2. Send invite link to user
+            $this->userSessions[Auth::id()]->messages->sendMessage([
+                'peer' => $telegramUsername,
+                'message' => "You are invited to join our channel: $inviteLink",
+            ]);
+
+            session()->flash('success', "Invite sent successfully to @{$telegramUsername}.");
+        } catch (\Throwable $e) {
+            Log::error('Failed to send channel invite: ' . $e->getMessage(), [
+                'channel_id' => $channelId,
+                'username' => $telegramUsername,
+                'user_id' => Auth::id(),
+            ]);
+            session()->flash('error', 'Failed to send invite: ' . $e->getMessage());
+        }
+    }
+
+    public function sendMessageToChannel($channelId)
+    {
+        // Validate channel ID
+        if (!is_numeric($channelId)) {
+            session()->flash('error', 'Invalid channel ID.');
+            return;
+        }
+
+        $message = "Welcome to our channel. This is a message from Laravel system";
+        try {
+            $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            $this->userSessions[Auth::id()]->messages->sendMessage([
+                'peer' => $channelId,
+                'message' => $message,
+            ]);
+            session()->flash('message', 'Message sent successfully.');
+        } catch (\danog\MadelineProto\RPCError\FloodWaitError $e) {
+            Log::warning('FloodWaitError while sending message: ' . $e->getMessage(), [
+                'channelId' => $channelId,
+                'wait_time' => $e->getWaitTime(),
+            ]);
+            session()->flash('error', 'Too many requests. Please wait ' . $e->getWaitTime() . ' seconds and try again.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to send message: ' . $e->getMessage(), [
+                'channelId' => $channelId,
+                'message' => $message,
+            ]);
+            session()->flash('error', 'Failed to send message: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteTelegramChannel($channelId)
+    {
+        // Validate channel ID
+        if (!is_numeric($channelId)) {
+            session()->flash('error', 'Invalid channel ID.');
+            return;
+        }
+
+        try {
+            $this->userSessions[Auth::id()] = $this->initSessionMadeline();
+            $this->userSessions[Auth::id()]->channels->deleteChannel([
+                'channel' => $channelId,
+            ]);
+            session()->flash('message', 'Channel deleted successfully.');
+            $this->getTelegramChannels(); // Refresh the list
+        } catch (\danog\MadelineProto\RPCErrorException $e) {
+            Log::error('RPC Error during channel deletion: ' . $e->getMessage(), [
+                'channelId' => $channelId,
+            ]);
+            session()->flash('error', 'Failed to delete channel: ' . $e->getMessage());
+        } catch (\danog\MadelineProto\Exception $e) {
+            Log::error('MadelineProto Exception during channel deletion: ' . $e->getMessage(), [
+                'channelId' => $channelId,
+            ]);
+            session()->flash('error', 'An error occurred with MadelineProto: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::critical('Unexpected error during channel deletion: ' . $e->getMessage(), [
+                'channelId' => $channelId,
+            ]);
+            session()->flash('error', 'An unexpected error occurred. Please try again later.');
+        }
+    }
+
+    protected function initSessionMadeline(): ?API
+    {
+        $apiId = config('services.telegram.api_id');
+        $apiHash = config('services.telegram.api_hash');
+
+        if (!$apiId || !$apiHash) {
+            throw new \RuntimeException('Telegram API credentials not configured in config/services.php');
+        }
+
+        $settings = (new Settings)->setAppInfo(
+            (new AppInfo)
+                ->setApiId((int)$apiId)
+                ->setApiHash($apiHash)
+        );
+
+        try {
+            // Get or create session - ONLY create if it doesn't exist in database
+            if (!$this->currentSession) {
+                // Try to get existing session first
+                $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
+
+                // Only create if no active session exists
+                if (!$this->currentSession) {
+                    $this->currentSession = $this->sessionRepository->createSession(
+                        Auth::id(),
+                        request()->ip(),
+                        request()->userAgent()
+                    );
+                    Log::info('Created new Telegram session with secure random identifier', [
+                        'user_id' => Auth::id(),
+                        'session_id' => $this->currentSession->id,
+                    ]);
+                }
+            }
+
+            $dir = $this->currentSession->session_path;
+
+            // Verify session ownership for security
+            if (!$this->sessionRepository->validateSessionOwnership($this->currentSession, Auth::id())) {
+                throw new \RuntimeException('Session ownership validation failed. Possible security breach attempt.');
+            }
+
+            // Ensure directory exists with secure permissions
+            if (!is_dir($dir)) {
+                if (!mkdir($dir, 0700, true) && !is_dir($dir)) {
+                    throw new \RuntimeException("Failed to create session directory: $dir");
+                }
+                Log::info('Created session directory with secure permissions (0700)', [
+                    'user_id' => Auth::id(),
+                    'path' => basename($dir),
+                ]);
+            }
+
+            // Initialize MadelineProto API
+            $this->userSessions[Auth::id()] = new API($dir, $settings);
+            session()->forget('showing-connection-message-for:user-' . Auth::id());
+
+            return $this->userSessions[Auth::id()];
+
+        } catch (\Throwable $e) {
+            Log::error("MadelineProto initialization failed: " . $e->getMessage(), [
+                'user_id' => Auth::id() ?? null,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw new \RuntimeException('MadelineProto session initialization failed.', 0, $e);
+        }
+    }
+
+    protected function isAuthorized(): bool
+    {
+        $authState = $this->userSessions[Auth::id()]->getAuthorization();
+        $this->telegramAuthState = $authState;
+
+        return ($authState === API::LOGGED_IN);
+    }
+
+    protected function getTelegramLoggedUserData()
+    {
+        $this->telegramLoggedUserData = $this->userSessions[Auth::id()]->getSelf();
+    }
+
+    public function showTelegramLogin(): void
+    {
+        $this->getQrCode();
+    }
+
+    public function showConnectionMessage(): \Illuminate\Contracts\View\Factory|\Illuminate\Foundation\Application|\Illuminate\Contracts\View\View
+    {
+        return view('livewire.integrations.telegram.connection-message');
+    }
+
+    public function render()
+    {
+        if (!isset($this->userSessions[Auth::id()])) {
+
+            return view('livewire.integrations.telegram.connection-message');
+        }
+
+        if ($this->telegramAuthState === 3) {
+            $this->getTelegramChannels();
+
+            return view('livewire.integrations.telegram.dashboard');
+        }
+
+        return view('livewire.integrations.telegram.index');
+    }
+}

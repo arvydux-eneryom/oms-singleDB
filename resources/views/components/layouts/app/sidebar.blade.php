@@ -16,6 +16,12 @@
             <flux:navlist.group :heading="__('System platform')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
                                    wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                <flux:navlist.item icon="users" :href="route('subdomains.index')"
+                                   :current="request()->routeIs('subdomains.index')"
+                                   wire:navigate>{{ __('Subdomains') }}</flux:navlist.item>
+                <flux:navlist.item icon="users" :href="route('integrations.index')"
+                                   :current="request()->routeIs('integrations.index')"
+                                   wire:navigate>{{ __('Integrations') }}</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
     @else
@@ -30,22 +36,18 @@
     <flux:navlist variant="outline">
             @if(! tenant())
             <flux:navlist.group :heading="__('Super admin area')" class="grid">
-            <flux:navlist.item icon="users" :href="route('subdomains.index')"
-                                   :current="request()->routeIs('subdomains.index')"
-                                   wire:navigate>{{ __('Subdomains') }}</flux:navlist.item>
-
                 @if(auth()->user() && auth()->user()->hasRole('super-admin-for-system'))
-                <flux:navlist.item icon="users" :href="route('users.index')"
-                                   :current="request()->routeIs('users.index')"
-                                   wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('users.index')"
+                                       :current="request()->routeIs('users.index')"
+                                       wire:navigate>{{ __('Users') }}</flux:navlist.item>
 
-                <flux:navlist.item icon="user-circle" :href="route('roles.index')"
-                                   :current="request()->routeIs('roles.index')"
-                                   wire:navigate>{{ __('Roles') }}</flux:navlist.item>
+                    <flux:navlist.item icon="user-circle" :href="route('roles.index')"
+                                       :current="request()->routeIs('roles.index')"
+                                       wire:navigate>{{ __('Roles') }}</flux:navlist.item>
 
-                <flux:navlist.item icon="adjustments-vertical" :href="route('permissions.index')"
-                                   :current="request()->routeIs('permissions.index')"
-                                   wire:navigate>{{ __('Permissions') }}</flux:navlist.item>
+                    <flux:navlist.item icon="adjustments-vertical" :href="route('permissions.index')"
+                                       :current="request()->routeIs('permissions.index')"
+                                       wire:navigate>{{ __('Permissions') }}</flux:navlist.item>
                 @endif
             </flux:navlist.group>
         @else
@@ -107,7 +109,6 @@
         </flux:menu>
     </flux:dropdown>
 </flux:sidebar>
-
 <!-- Mobile User Menu -->
 {{--        <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />

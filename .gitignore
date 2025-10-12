@@ -23,3 +23,7 @@ yarn-error.log
 /.zed
 CLAUDE.md
 .DS_Store
+
+# MadelineProto logs
+/public/MadelineProto.log
+MadelineProto.log

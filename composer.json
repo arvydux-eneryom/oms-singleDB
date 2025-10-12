@@ -19,7 +19,9 @@
         "livewire/volt": "^1.7.0",
         "spatie/laravel-medialibrary": "^11.13",
         "spatie/laravel-permission": "^6.20",
-        "stancl/tenancy": "^3.9"
+        "stancl/tenancy": "^3.9",
+        "ext-dom": "*",
+        "ext-libxml": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
