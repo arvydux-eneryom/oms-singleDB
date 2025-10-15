@@ -21,7 +21,8 @@
         "spatie/laravel-permission": "^6.20",
         "stancl/tenancy": "^3.9",
         "ext-dom": "*",
-        "ext-libxml": "*"
+        "ext-libxml": "*",
+        "twilio/sdk": "^8.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -68,7 +69,7 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php -d xdebug.mode=off artisan test"
         ],
         "lint": [
             "./vendor/bin/pint --test",

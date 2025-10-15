@@ -62,7 +62,7 @@
                                 {{ $subdomain->tenant->users_count }}
                             </td>
                             <td class="px-6 py-4">
-                                {{ $subdomain->created_at->format('Y-m-d H:i:s') }}
+                                {{ $subdomain->created_at?->format('Y-m-d H:i:s') ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 space-x-2">
                                 <flux:button href="{{ route('subdomains.edit', $subdomain) }}"
