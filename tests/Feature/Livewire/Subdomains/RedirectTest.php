@@ -14,13 +14,6 @@ class RedirectTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
-    }
-
-
     public function test_redirect_auto_redirects_to_first_subdomain(): void
     {
         $user = User::factory()->create([

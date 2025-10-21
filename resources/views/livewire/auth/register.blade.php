@@ -76,7 +76,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             }
             Auth::login($user);
 
-            RedirectionToSubdomainService::redirectToSubdomain();
+            $this->redirectIntended(default: route(RedirectionToSubdomainService::getRedirectRouteName(), absolute: false), navigate: true);
         });
     }
 

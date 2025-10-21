@@ -15,12 +15,6 @@ class EditTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
-    }
-
     public function test_component_can_be_rendered(): void
     {
         $systemUser = User::factory()->create([

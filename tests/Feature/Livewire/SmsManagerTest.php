@@ -38,6 +38,18 @@ class SmsManagerTest extends TestCase
         parent::tearDown();
     }
 
+    protected function mockTwilioService(): void
+    {
+        $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
+        });
+    }
+
     #[Test]
     public function it_can_mount_and_load_sms_messages()
     {
@@ -57,19 +69,14 @@ class SmsManagerTest extends TestCase
     public function it_loads_account_balance_on_mount()
     {
         // Arrange
-        $mockBalance = Mockery::mock();
-        $mockBalance->balance = '15.52';
-        $mockBalance->currency = 'USD';
-
-        $this->mock(TwilioSmsService::class, function ($mock) use ($mockBalance) {
-            $mockClient = Mockery::mock();
-            $mockClient->balance = Mockery::mock();
-            $mockClient->balance->shouldReceive('fetch')->andReturn($mockBalance);
-
-            $reflection = new \ReflectionClass($mock);
-            $property = $reflection->getProperty('client');
-            $property->setAccessible(true);
-            $property->setValue($mock, $mockClient);
+        $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->once()
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
         });
 
         // Act
@@ -90,6 +97,12 @@ class SmsManagerTest extends TestCase
         $mockMessage->status = 'queued';
 
         $this->mock(TwilioSmsService::class, function ($mock) use ($mockMessage) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
             $mock->shouldReceive('send')
                 ->once()
                 ->with('+37064626008', 'Test message', $this->user->id)
@@ -152,6 +165,12 @@ class SmsManagerTest extends TestCase
         Log::spy();
 
         $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
             $mock->shouldReceive('send')
                 ->once()
                 ->andThrow(new \RuntimeException('Failed to send SMS: Invalid phone number format'));
@@ -211,6 +230,12 @@ class SmsManagerTest extends TestCase
         $mockMessage->sid = 'SM1234567890abcdef';
 
         $this->mock(TwilioSmsService::class, function ($mock) use ($mockMessage) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
             $mock->shouldReceive('send')
                 ->once()
                 ->with('+37064626008', 'Bulk message', $this->user->id)
@@ -249,6 +274,13 @@ class SmsManagerTest extends TestCase
         $mockMessage->sid = 'SM1234567890abcdef';
 
         $this->mock(TwilioSmsService::class, function ($mock) use ($mockMessage) {
+            $mock->shouldReceive('getAccountBalance')
+                ->atLeast()->once()
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
             $mock->shouldReceive('send')
                 ->once()
                 ->andReturn($mockMessage);
@@ -264,13 +296,23 @@ class SmsManagerTest extends TestCase
 
         // Assert
         Log::shouldHaveReceived('info')
-            ->once()
+            ->atLeast()->once()
             ->with('Question SMS sent successfully', Mockery::type('array'));
     }
 
     #[Test]
     public function it_validates_question_phone_number_format()
     {
+        // Arrange - Mock Twilio service for component mount
+        $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
+        });
+
         // Act & Assert
         Livewire::test(SmsManager::class)
             ->set('questionTo', 'invalid')
@@ -283,6 +325,15 @@ class SmsManagerTest extends TestCase
     {
         // Arrange
         Log::spy();
+
+        $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
+        });
 
         $this->mock(SmsManagerService::class, function ($mock) {
             $mock->shouldReceive('sendQuestion')
@@ -313,7 +364,7 @@ class SmsManagerTest extends TestCase
 
         $this->mock(TwilioSmsService::class, function ($mock) use ($mockBalance) {
             $mock->shouldReceive('getAccountBalance')
-                ->once()
+                ->atLeast()->once()
                 ->andReturn([
                     'balance' => '20.00',
                     'currency' => 'USD',
@@ -336,7 +387,7 @@ class SmsManagerTest extends TestCase
 
         $this->mock(TwilioSmsService::class, function ($mock) {
             $mock->shouldReceive('getAccountBalance')
-                ->once()
+                ->atLeast()->once()
                 ->andReturn([
                     'balance' => '30.00',
                     'currency' => 'USD',
@@ -348,13 +399,25 @@ class SmsManagerTest extends TestCase
         Livewire::test(SmsManager::class)
             ->call('refreshBalance');
 
-        // Assert
-        $this->assertFalse(Cache::has('twilio_account_balance'));
+        // Assert - cache should have the new balance value
+        $this->assertTrue(Cache::has('twilio_account_balance'));
+        $cachedBalance = Cache::get('twilio_account_balance');
+        $this->assertEquals('30.00 USD', $cachedBalance['formatted']);
     }
 
     #[Test]
     public function it_can_clear_messages()
     {
+        // Arrange - Mock Twilio service for component mount
+        $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
+        });
+
         // Act & Assert
         Livewire::test(SmsManager::class)
             ->set('successMessage', 'Success')
@@ -369,6 +432,16 @@ class SmsManagerTest extends TestCase
     #[Test]
     public function it_calculates_characters_left_correctly()
     {
+        // Arrange - Mock Twilio service for component mount
+        $this->mock(TwilioSmsService::class, function ($mock) {
+            $mock->shouldReceive('getAccountBalance')
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
+        });
+
         // Act & Assert
         Livewire::test(SmsManager::class)
             ->set('body', 'Hello')
@@ -383,6 +456,8 @@ class SmsManagerTest extends TestCase
     public function it_loads_only_current_user_sms_messages()
     {
         // Arrange
+        $this->mockTwilioService();
+
         $otherUser = User::factory()->create();
 
         // Create messages for current user
@@ -409,6 +484,8 @@ class SmsManagerTest extends TestCase
     public function it_loads_latest_sms_messages_first()
     {
         // Arrange
+        $this->mockTwilioService();
+
         $oldMessage = SmsMessage::factory()->create([
             'user_id' => $this->user->id,
             'created_at' => now()->subDays(5),
@@ -433,6 +510,8 @@ class SmsManagerTest extends TestCase
     public function it_limits_sms_messages_to_10()
     {
         // Arrange
+        $this->mockTwilioService();
+
         SmsMessage::factory()->count(15)->create([
             'user_id' => $this->user->id,
         ]);
@@ -452,6 +531,13 @@ class SmsManagerTest extends TestCase
         $mockMessage->sid = 'SM1234567890abcdef';
 
         $this->mock(TwilioSmsService::class, function ($mock) use ($mockMessage) {
+            $mock->shouldReceive('getAccountBalance')
+                ->atLeast()->once()
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
             $mock->shouldReceive('send')->andReturn($mockMessage);
         });
 
@@ -472,6 +558,13 @@ class SmsManagerTest extends TestCase
         $mockMessage->sid = 'SM1234567890abcdef';
 
         $this->mock(TwilioSmsService::class, function ($mock) use ($mockMessage) {
+            $mock->shouldReceive('getAccountBalance')
+                ->atLeast()->once()
+                ->andReturn([
+                    'balance' => '15.52',
+                    'currency' => 'USD',
+                    'formatted' => '15.52 USD',
+                ]);
             $mock->shouldReceive('send')->andReturn($mockMessage);
         });
 

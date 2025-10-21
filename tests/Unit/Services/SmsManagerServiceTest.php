@@ -70,7 +70,8 @@ class SmsManagerServiceTest extends TestCase
                         && str_contains($message, 'How satisfied are you')
                         && str_contains($message, '1. Very Dissatisfied')
                         && str_contains($message, '5. Very Satisfied');
-                })
+                }),
+                null
             )
             ->andReturn($mockMessage);
 
@@ -120,7 +121,8 @@ class SmsManagerServiceTest extends TestCase
                 '+37064626008',
                 Mockery::on(function ($message) {
                     return str_contains($message, 'Welcome back!');
-                })
+                }),
+                null
             )
             ->andReturn($mockMessage);
 
@@ -182,7 +184,7 @@ class SmsManagerServiceTest extends TestCase
         // Expect confirmation SMS to be sent
         $mockSmsService->shouldReceive('send')
             ->once()
-            ->with('+37064626008', 'You selected: Option 2')
+            ->with('+37064626008', 'You selected: Option 2', null)
             ->andReturn($mockMessage);
 
         $service = $this->createService($mockSmsService);
@@ -358,7 +360,7 @@ class SmsManagerServiceTest extends TestCase
         // Should send confirmation for the LATEST question
         $mockSmsService->shouldReceive('send')
             ->once()
-            ->with('+37064626008', 'You selected: New Option 1')
+            ->with('+37064626008', 'You selected: New Option 1', null)
             ->andReturn($mockMessage);
 
         $service = $this->createService($mockSmsService);

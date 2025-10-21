@@ -43,7 +43,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        RedirectionToSubdomainService::redirectToSubdomain();
+        // Use Livewire's redirectIntended method (works with void methods)
+        $this->redirectIntended(default: route(RedirectionToSubdomainService::getRedirectRouteName(), absolute: false), navigate: true);
     }
 
     /**
