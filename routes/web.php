@@ -12,6 +12,7 @@ use App\Livewire\Users;
 use App\Livewire\Roles;
 use App\Livewire\Permissions;
 use App\Livewire\Integrations;
+use App\Livewire\Tenancy\Customers;
 
 Route::get('/', function () {
     return view('welcome');
@@ -61,6 +62,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('permissions/create', Permissions\Create::class)->name('permissions.create');
     Route::get('permissions/{permission}/edit', Permissions\Edit::class)->name('permissions.edit');
 
+    Route::get('customers', Customers\Index::class)->name('customers.index');
+    Route::get('customers/create', Customers\Create::class)->name('customers.create');
+    Route::get('customers/{customer}/edit', Customers\Edit::class)->name('customers.edit');
+    Route::get('customers/{customer}', Customers\View::class)->name('customers.view');
 
     Route::post('companylogo/{company}/upload', [LogoController::class, 'uploadLogo'])->name('company.uploadLogo');
 

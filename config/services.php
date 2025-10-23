@@ -51,4 +51,8 @@ return [
         'outgoing_sms_status_callback_url' => env('TWILIO_SMS_COMMON_URL', '') . env('TWILIO_OUTGOING_SMS_STATUS_CALLBACK_URL_PATH', ''),
         'incoming_sms_url_path' => env('TWILIO_INCOMING_SMS_URL_PATH', ''),
     ],
+
+    'google_maps' => [
+        'api_key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
 ];

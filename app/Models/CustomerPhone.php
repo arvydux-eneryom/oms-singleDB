@@ -17,6 +17,12 @@ class CustomerPhone extends Model
         'is_sms_enabled',
     ];
 
+    protected $casts = [
+        'is_sms_enabled' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

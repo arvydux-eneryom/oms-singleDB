@@ -17,6 +17,12 @@ class CustomerEmail extends Model
         'is_verified',
     ];
 
+    protected $casts = [
+        'is_verified' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

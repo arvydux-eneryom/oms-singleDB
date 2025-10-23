@@ -3,130 +3,180 @@
 namespace App\Livewire\Tenancy\Customers;
 
 use App\Models\Customer;
-use Illuminate\Http\Request;
 use Livewire\Component;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 
 class Create extends Component
 {
+    // Form data
     public $customer = [];
-
     public $phones = [''];
     public $phoneTypes = [''];
     public $isSmsEnabled = [];
     public $emails = [''];
     public $emailTypes = [''];
-
     public $isVerified = [];
+    public $contacts = [['name' => '', 'email' => '', 'phone' => '']];
+    public $serviceAddresses = [[
+        'address' => '', 'country' => '', 'city' => '',
+        'postcode' => '', 'latitude' => '', 'longitude' => '',
+    ]];
+    public $billingAddresses = [[
+        'address' => '', 'country' => '', 'city' => '',
+        'postcode' => '', 'latitude' => '', 'longitude' => '',
+    ]];
 
-    public $contacts = [
-        ['name' => '', 'email' => ''],
-    ];
-
-    public $serviceAddresses = [
-        [
-            'address' => '',
-            'country' => '',
-            'city' => '',
-            'postcode' => '',
-            'latitude' => '',
-            'longitude' => '',
-        ]
-    ];
-    public $billingAddresses = [
-        [
-            'address' => '',
-            'country' => '',
-            'city' => '',
-            'postcode' => '',
-            'latitude' => '',
-            'longitude' => '',
-        ]
-    ];
-
+    // UI state
+    public string $currentTab = 'general';
+    public bool $isSubmitting = false;
+    public array $tabErrors = [];
     public $status = false;
     public int $tenantId = 0;
+    public string $googleMapsApiKey = '';
+
+    // Options
     public $phoneTypeOptions = ['Primary', 'Work', 'Home', 'Emergency'];
     public $emailTypeOptions = ['Primary', 'Work', 'Personal'];
 
+    // Validation messages
     protected $messages = [
-        'customer.company.required'    => 'The company name is required.',
-        'customer.company.string'      => 'The company name must be a string.',
-        'customer.company.max'         => 'The company name may not be greater than 255 characters.',
-
-        'customer.address.required'    => 'The address field is required.',
-        'customer.address.string'      => 'The address must be a string.',
-        'customer.address.max'         => 'The address may not be greater than 500 characters.',
-
-        'customer.postcode.string'     => 'The post code must be a string.',
-        'customer.postcode.max'        => 'The post code may not be greater than 20 characters.',
-
-        'customer.latitude.numeric'    => 'The latitude must be a valid number.',
-        'customer.latitude.between'    => 'The latitude must be between -90 and 90.',
-
-        'customer.longitude.numeric'   => 'The longitude must be a valid number.',
-        'customer.longitude.between'   => 'The longitude must be between -180 and 180.',
-
-        'customer.country.required'    => 'The country field is required.',
-        'customer.country.string'      => 'The country must be a string.',
-        'customer.country.max'         => 'The country may not be greater than 100 characters.',
-
-        'customer.city.required'       => 'The city field is required.',
-        'customer.city.string'         => 'The city must be a string.',
-        'customer.city.max'            => 'The city may not be greater than 100 characters.',
-
-        'phones.0.required'            => 'At least one phone number is required.',
-        'phones.0.string'              => 'The phone number must be a string.',
-        'phones.0.max'                 => 'The phone number may not be greater than 20 characters.',
-        'phones.0.regex'               => 'The phone number format is invalid.',
-        'phones.*.string'              => 'Each phone number must be a string.',
-        'phones.*.max'                 => 'Each phone number may not be greater than 20 characters.',
-        'phones.*.regex'               => 'Each phone number format is invalid.',
-
-        'emails.0.required'            => 'At least one email address is required.',
-        'emails.0.email'               => 'The first email address must be a valid email.',
-        'emails.0.max'                 => 'The first email address may not be greater than 255 characters.',
-        'emails.*.email'               => 'Each email address must be a valid email.',
-        'emails.*.max'                 => 'Each email address may not be greater than 255 characters.',
-
-        'phoneTypes.0.required'        => 'The phone type for the first phone is required.',
-        'phoneTypes.array'             => 'Phone types must be an array.',
-        'isSmsEnabled.array'           => 'SMS enabled flags must be an array.',
-        'emailTypes.0.required'        => 'The email type for the first email is required.',
-        'emailTypes.array'             => 'Email types must be an array.',
-        'isVerified.array'             => 'Verified flags must be an array.',
+        'customer.company.required' => 'Please enter the company name.',
+        'customer.company.unique' => 'A customer with this company name already exists.',
+        'customer.address.required' => 'Please enter the primary address.',
+        'customer.country.required' => 'Please enter the country.',
+        'customer.city.required' => 'Please enter the city.',
+        'phones.0.required' => 'At least one phone number is required.',
+        'phones.*.regex' => 'Please enter a valid phone number.',
+        'phoneTypes.0.required' => 'Please select a type for the first phone.',
+        'emails.0.required' => 'At least one email address is required.',
+        'emails.0.email' => 'Please enter a valid email address.',
+        'emailTypes.0.required' => 'Please select a type for the first email.',
     ];
 
+    // Validation rules
     protected $rules = [
-        'customer.company' => 'required|string|max:255',
-        'customer.address' => 'required|string|max:255',
+        'customer.company' => ['required', 'string', 'max:255'],
+        'customer.address' => ['required', 'string'],
+        'customer.country' => ['required', 'string', 'max:255'],
+        'customer.city' => ['required', 'string', 'max:100'],
+        'customer.postcode' => ['nullable', 'string', 'max:20'],
+        'customer.latitude' => ['nullable', 'numeric', 'between:-90,90'],
+        'customer.longitude' => ['nullable', 'numeric', 'between:-180,180'],
+        'customer.status' => ['boolean'],
         'phones.0' => ['required', 'string', 'max:20', 'regex:/^[\d\s\-\+\(\)]+$/'],
         'phones.*' => ['nullable', 'string', 'max:20', 'regex:/^[\d\s\-\+\(\)]+$/'],
         'phoneTypes.0' => ['required'],
         'phoneTypes' => 'array',
-        'emails.*' => 'required|email',
-        // Add other fields as needed
+        'isSmsEnabled' => 'array',
+        'emails.0' => ['required', 'email', 'max:255'],
+        'emails.*' => ['nullable', 'email', 'max:255'],
+        'emailTypes.0' => ['required'],
+        'emailTypes' => 'array',
+        'isVerified' => 'array',
+        'contacts.*.name' => ['nullable', 'string', 'max:255'],
+        'contacts.*.email' => ['nullable', 'email', 'max:255'],
+        'contacts.*.phone' => ['nullable', 'string', 'max:20'],
+        'serviceAddresses.*.address' => ['nullable', 'string'],
+        'serviceAddresses.*.country' => ['nullable', 'string', 'max:255'],
+        'serviceAddresses.*.city' => ['nullable', 'string', 'max:100'],
+        'serviceAddresses.*.postcode' => ['nullable', 'string', 'max:20'],
+        'serviceAddresses.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
+        'serviceAddresses.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
+        'billingAddresses.*.address' => ['nullable', 'string'],
+        'billingAddresses.*.country' => ['nullable', 'string', 'max:255'],
+        'billingAddresses.*.city' => ['nullable', 'string', 'max:100'],
+        'billingAddresses.*.postcode' => ['nullable', 'string', 'max:20'],
+        'billingAddresses.*.latitude' => ['nullable', 'numeric', 'between:-90,90'],
+        'billingAddresses.*.longitude' => ['nullable', 'numeric', 'between:-180,180'],
     ];
 
     public function mount()
     {
         $this->tenantId = tenant('id');
         $this->customer['status'] = true;
+        $this->googleMapsApiKey = config('services.google_maps.api_key') ?? '';
     }
 
     public function updated($field)
     {
         $this->validateOnly($field);
+        $this->updateTabErrors();
     }
 
+    public function updatedCurrentTab()
+    {
+        $this->dispatch('tab-changed', tab: $this->currentTab);
+    }
+
+    // Tab management
+    public function switchTab(string $tab): void
+    {
+        $this->currentTab = $tab;
+        $this->dispatch('tab-changed', tab: $tab);
+    }
+
+    // Computed property for tab error indicators
+    #[Computed]
+    public function hasTabErrors(): array
+    {
+        return $this->tabErrors;
+    }
+
+    private function updateTabErrors(): void
+    {
+        $errors = $this->getErrorBag();
+
+        $this->tabErrors = [
+            'general' => $errors->has('customer.*') || $errors->has('phones.*') ||
+                         $errors->has('phoneTypes.*') || $errors->has('emails.*') ||
+                         $errors->has('emailTypes.*'),
+            'contacts' => $errors->has('contacts.*'),
+            'service' => $errors->has('serviceAddresses.*'),
+            'billing' => $errors->has('billingAddresses.*'),
+        ];
+    }
+
+    // Data normalization methods
+    private function normalizePhone(string $phone): string
+    {
+        // Remove all non-digit characters except + at the start
+        $normalized = preg_replace('/[^\d+]/', '', $phone);
+        // Ensure + only at the start
+        $normalized = ltrim($normalized, '+');
+        if (str_starts_with($phone, '+')) {
+            $normalized = '+' . $normalized;
+        }
+        return $normalized;
+    }
+
+    private function normalizeEmail(string $email): string
+    {
+        return strtolower(trim($email));
+    }
+
+    // Duplicate detection
+    private function checkDuplicateCustomer(): ?Customer
+    {
+        return Customer::where('tenant_id', $this->tenantId)
+            ->where('company', $this->customer['company'])
+            ->first();
+    }
+
+    // Array management methods
     public function addPhone(): void
     {
         $this->phones[] = '';
+        $this->phoneTypes[] = '';
+        $this->isSmsEnabled[] = false;
     }
 
     public function addEmail(): void
     {
         $this->emails[] = '';
+        $this->emailTypes[] = '';
+        $this->isVerified[] = false;
     }
 
     public function addContact(): void
@@ -137,37 +187,33 @@ class Create extends Component
     public function addServiceAddress(): void
     {
         $this->serviceAddresses[] = [
-            'address' => '',
-            'country' => '',
-            'city' => '',
-            'postcode' => '',
-            'latitude' => '',
-            'longitude' => '',
+            'address' => '', 'country' => '', 'city' => '',
+            'postcode' => '', 'latitude' => '', 'longitude' => '',
         ];
     }
 
-    public function addBillingAddress()
+    public function addBillingAddress(): void
     {
         $this->billingAddresses[] = [
-            'address' => '',
-            'country' => '',
-            'city' => '',
-            'postcode' => '',
-            'latitude' => '',
-            'longitude' => '',
+            'address' => '', 'country' => '', 'city' => '',
+            'postcode' => '', 'latitude' => '', 'longitude' => '',
         ];
     }
 
     public function removePhone($index)
     {
-        unset($this->phones[$index]);
+        unset($this->phones[$index], $this->phoneTypes[$index], $this->isSmsEnabled[$index]);
         $this->phones = array_values($this->phones);
+        $this->phoneTypes = array_values($this->phoneTypes);
+        $this->isSmsEnabled = array_values($this->isSmsEnabled);
     }
 
     public function removeEmail($index)
     {
-        unset($this->emails[$index]);
+        unset($this->emails[$index], $this->emailTypes[$index], $this->isVerified[$index]);
         $this->emails = array_values($this->emails);
+        $this->emailTypes = array_values($this->emailTypes);
+        $this->isVerified = array_values($this->isVerified);
     }
 
     public function removeContact($index)
@@ -190,132 +236,191 @@ class Create extends Component
 
     public function save(): void
     {
-        $validated = $this->validate([
-            'customer.company' => [
-                'required',
-                'string',
-                'max:255'],
-            'customer.address' => [
-                'required',
-                'string',
-            ],
-            'customer.country' => ['required', 'string', 'max:255'],
-            'customer.city' => ['required', 'string', 'max:100'],
-            'customer.postcode' => ['string', 'max:20'],
-            'customer.latitude' => ['numeric', 'between:-90,90'],
-            'customer.longitude' => ['numeric', 'between:-180,180'],
-            'customer.status' => ['boolean'],
-            'phones.0' => ['required', 'string', 'max:20', 'regex:/^[\d\s\-\+\(\)]+$/'],
-            'phones.*' => ['nullable', 'string', 'max:20', 'regex:/^[\d\s\-\+\(\)]+$/'],
-            'phoneTypes.0' => ['required'],
-            'phoneTypes' => 'array',
-            'isSmsEnabled' => 'array',
-            'emails.0' => ['required', 'email', 'max:255'],
-            'emails.*' => ['nullable', 'email', 'max:255'],
-            'emailTypes.0' => ['required'],
-            'emailTypes' => 'array',
-            'isVerified' => 'array',
-            /*            'contacts' => 'required|array|min:1',
-                        'contacts.*.name' => 'required|string|max:255',
-                        'contacts.*.email' => 'nullable|email|max:255',
-                        'contacts.*.phone' => 'nullable|string|max:20',*/
-
-            /*            'serviceAddresses' => 'array',
-                        'serviceAddresses.*.address' => 'required|string',
-                        'serviceAddresses.*.country' => 'nullable|string|max:255',
-                        'serviceAddresses.*.city' => 'nullable|string|max:100',
-                        'serviceAddresses.*.postcode' => 'nullable|string|max:20',
-                        'serviceAddresses.*.latitude' => 'nullable|numeric|between:-90,90',
-                        'serviceAddresses.*.longitude' => 'nullable|numeric|between:-180,180',*/
-        ]);
-
-        $customer = Customer::create([
-            'company' => $validated['customer']['company'],
-            'address' => $validated['customer']['address'],
-            'country' => $validated['customer']['country'],
-            'city' => $validated['customer']['city'],
-            'postcode' => $validated['customer']['postcode'] ?? null,
-            'latitude' => $validated['customer']['latitude'] ?? null,
-            'longitude' => $validated['customer']['longitude'] ?? null,
-            'status' => (bool)($validated['customer']['status'] ?? false),
-        ]);
-
-        // Save each phone
-        foreach ($this->phones as $phone) {
-            if (!empty($phone)) {
-                $customer->customerPhones()->create(['phone' => $phone]);
-            }
+        // Check for duplicate before validation
+        $duplicate = $this->checkDuplicateCustomer();
+        if ($duplicate) {
+            $this->addError('customer.company', 'A customer with this company name already exists.');
+            $this->switchTab('general');
+            return;
         }
 
-        foreach ($this->phoneTypes as $index => $type) {
-            if (isset($this->phones[$index]) && !empty($this->phones[$index])) {
-                $customer->customerPhones()->where('phone', $this->phones[$index])->update(['type' => $type]);
+        $this->isSubmitting = true;
+
+        try {
+            $validated = $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->isSubmitting = false;
+            $this->updateTabErrors();
+
+            // Switch to first tab with errors
+            if (!empty($this->tabErrors['general'])) {
+                $this->switchTab('general');
+            } elseif (!empty($this->tabErrors['contacts'])) {
+                $this->switchTab('contacts');
+            } elseif (!empty($this->tabErrors['service'])) {
+                $this->switchTab('service');
+            } elseif (!empty($this->tabErrors['billing'])) {
+                $this->switchTab('billing');
             }
+
+            throw $e;
         }
 
-        foreach ($this->isSmsEnabled as $index => $isSmsEnabled) {
-            if (isset($this->phones[$index]) && !empty($this->phones[$index])) {
-                $customer->customerPhones()->where('phone', $this->phones[$index])->update(['is_sms_enabled' => (bool)$isSmsEnabled]);
-            }
-        }
-
-        // Save each email
-        foreach ($this->emails as $email) {
-            if (!empty($email)) {
-                $customer->customerEmails()->create(['email' => $email]);
-            }
-        }
-
-        foreach ($this->emailTypes as $index => $type) {
-            if (isset($this->emails[$index]) && !empty($this->emails[$index])) {
-                $customer->customerEmails()->where('email', $this->emails[$index])->update(['type' => $type]);
-            }
-        }
-
-        foreach ($this->isVerified as $index => $isVerified) {
-            if (isset($this->emails[$index]) && !empty($this->emails[$index])) {
-                $customer->customerEmails()->where('email', $this->emails[$index])->update(['is_verified' => (bool)$isVerified]);
-            }
-        }
-
-        // Save each contact
-        foreach ($this->contacts as $contact) {
-            if (!empty($contact)) {
-                $customer->customerContacts()->create(['name' => $contact['name'], 'phone' => $contact['phone'], 'email' => $contact['email']]);
-            }
-        }
-
-        foreach ($this->serviceAddresses as $serviceAddress) {
-            if (!empty($serviceAddress['address'])) {
-                $customer->customerServiceAddresses()->create([
-                    'address' => $serviceAddress['address'] ?? '',
-                    'country' => $serviceAddress['country'] ?? '',
-                    'city' => $serviceAddress['city'] ?? '',
-                    'postcode' => $serviceAddress['postcode'] ?? '',
-                    'latitude' => $serviceAddress['latitude'] ?? null,
-                    'longitude' => $serviceAddress['longitude'] ?? null,
+        try {
+            $customer = DB::transaction(function () use ($validated) {
+                // Create customer with tenant_id
+                $customer = Customer::create([
+                    'company' => $validated['customer']['company'],
+                    'address' => $validated['customer']['address'],
+                    'country' => $validated['customer']['country'],
+                    'city' => $validated['customer']['city'],
+                    'postcode' => $validated['customer']['postcode'] ?? null,
+                    'latitude' => $validated['customer']['latitude'] ?? null,
+                    'longitude' => $validated['customer']['longitude'] ?? null,
+                    'status' => (bool)($validated['customer']['status'] ?? false),
+                    'tenant_id' => $this->tenantId,
                 ]);
-            }
+
+                // Bulk insert phones with normalization
+                $phonesData = [];
+                foreach ($this->phones as $index => $phone) {
+                    if (!empty($phone)) {
+                        $phonesData[] = [
+                            'customer_id' => $customer->id,
+                            'phone' => $this->normalizePhone($phone),
+                            'type' => strtolower($this->phoneTypes[$index] ?? 'primary'),
+                            'is_sms_enabled' => (bool)($this->isSmsEnabled[$index] ?? false),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+                if (!empty($phonesData)) {
+                    DB::table('customer_phones')->insert($phonesData);
+                }
+
+                // Bulk insert emails with normalization
+                $emailsData = [];
+                foreach ($this->emails as $index => $email) {
+                    if (!empty($email)) {
+                        $emailsData[] = [
+                            'customer_id' => $customer->id,
+                            'email' => $this->normalizeEmail($email),
+                            'type' => strtolower($this->emailTypes[$index] ?? 'primary'),
+                            'is_verified' => (bool)($this->isVerified[$index] ?? false),
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+                if (!empty($emailsData)) {
+                    DB::table('customer_emails')->insert($emailsData);
+                }
+
+                // Bulk insert contacts
+                $contactsData = [];
+                foreach ($this->contacts as $contact) {
+                    if (!empty($contact['name']) || !empty($contact['email']) || !empty($contact['phone'])) {
+                        $contactsData[] = [
+                            'customer_id' => $customer->id,
+                            'name' => $contact['name'] ?? null,
+                            'email' => !empty($contact['email']) ? $this->normalizeEmail($contact['email']) : null,
+                            'phone' => !empty($contact['phone']) ? $this->normalizePhone($contact['phone']) : null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+                if (!empty($contactsData)) {
+                    DB::table('customer_contacts')->insert($contactsData);
+                }
+
+                // Bulk insert service addresses
+                $serviceAddressesData = [];
+                foreach ($this->serviceAddresses as $serviceAddress) {
+                    if (!empty($serviceAddress['address'])) {
+                        $serviceAddressesData[] = [
+                            'customer_id' => $customer->id,
+                            'address' => $serviceAddress['address'],
+                            'country' => $serviceAddress['country'] ?? null,
+                            'city' => $serviceAddress['city'] ?? null,
+                            'postcode' => $serviceAddress['postcode'] ?? null,
+                            'latitude' => $serviceAddress['latitude'] ?? null,
+                            'longitude' => $serviceAddress['longitude'] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+                if (!empty($serviceAddressesData)) {
+                    DB::table('customer_service_addresses')->insert($serviceAddressesData);
+                }
+
+                // Bulk insert billing addresses
+                $billingAddressesData = [];
+                foreach ($this->billingAddresses as $billingAddress) {
+                    if (!empty($billingAddress['address'])) {
+                        $billingAddressesData[] = [
+                            'customer_id' => $customer->id,
+                            'address' => $billingAddress['address'],
+                            'country' => $billingAddress['country'] ?? null,
+                            'city' => $billingAddress['city'] ?? null,
+                            'postcode' => $billingAddress['postcode'] ?? null,
+                            'latitude' => $billingAddress['latitude'] ?? null,
+                            'longitude' => $billingAddress['longitude'] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+                if (!empty($billingAddressesData)) {
+                    DB::table('customer_billing_addresses')->insert($billingAddressesData);
+                }
+
+                return $customer;
+            });
+
+            session()->flash('success', 'Customer "' . $customer->company . '" successfully created.');
+
+            // Reset form
+            $this->resetForm();
+
+            $this->redirectRoute('customers.index', navigate: true);
+        } catch (\Exception $e) {
+            $this->isSubmitting = false;
+            session()->flash('error', 'Failed to create customer. Please try again.');
+            logger()->error('Customer creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'tenant_id' => $this->tenantId,
+            ]);
         }
-
-        foreach ($this->billingAddresses as $billingAddress) {
-            if (!empty($billingAddress['address'])) {
-                $customer->customerBillingAddresses()->create([
-                    'address' => $billingAddress['address'] ?? '',
-                    'country' => $billingAddress['country'] ?? '',
-                    'city' => $billingAddress['city'] ?? '',
-                    'postcode' => $billingAddress['postcode'] ?? '',
-                    'latitude' => $billingAddress['latitude'] ?? null,
-                    'longitude' => $billingAddress['longitude'] ?? null,
-                ]);
-            }
-        }
-
-        session()->flash('success', 'Customer successfully created.');
-
-        $this->redirectRoute('customers.create', navigate: true);
     }
 
+    public function resetForm(): void
+    {
+        $this->customer = [];
+        $this->phones = [''];
+        $this->phoneTypes = [''];
+        $this->isSmsEnabled = [];
+        $this->emails = [''];
+        $this->emailTypes = [''];
+        $this->isVerified = [];
+        $this->contacts = [['name' => '', 'email' => '', 'phone' => '']];
+        $this->serviceAddresses = [[
+            'address' => '', 'country' => '', 'city' => '',
+            'postcode' => '', 'latitude' => '', 'longitude' => '',
+        ]];
+        $this->billingAddresses = [[
+            'address' => '', 'country' => '', 'city' => '',
+            'postcode' => '', 'latitude' => '', 'longitude' => '',
+        ]];
+        $this->customer['status'] = true;
+        $this->currentTab = 'general';
+        $this->isSubmitting = false;
+        $this->tabErrors = [];
+        $this->resetValidation();
+    }
 
     public function render(): View
     {

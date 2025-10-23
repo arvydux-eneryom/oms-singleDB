@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('tenant_id')->constrained('tenants')->onDelete('cascade');
             $table->string('company');
             $table->string('address');
             $table->string('country', 100);
@@ -19,6 +20,7 @@ return new class extends Migration
             $table->decimal('longitude', 10, 7)->nullable();
             $table->boolean('status')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
