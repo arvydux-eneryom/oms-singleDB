@@ -14,12 +14,12 @@
     @if(! tenant())
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('System platform')" class="grid">
-                <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
+                <flux:navlist.item icon="home" :href="config('app.url') . '/dashboard'" :current="request()->routeIs('dashboard')"
                                    wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                <flux:navlist.item icon="users" :href="route('subdomains.index')"
+                <flux:navlist.item icon="users" :href="config('app.url') . '/subdomains'"
                                    :current="request()->routeIs('subdomains.index')"
                                    wire:navigate>{{ __('Subdomains') }}</flux:navlist.item>
-                <flux:navlist.item icon="users" :href="route('integrations.index')"
+                <flux:navlist.item icon="users" :href="config('app.url') . '/integrations'"
                                    :current="request()->routeIs('integrations.index')"
                                    wire:navigate>{{ __('Integrations') }}</flux:navlist.item>
             </flux:navlist.group>
@@ -37,15 +37,15 @@
             @if(! tenant())
             <flux:navlist.group :heading="__('Super admin area')" class="grid">
                 @if(auth()->user() && auth()->user()->hasRole('super-admin-for-system'))
-                    <flux:navlist.item icon="users" :href="route('users.index')"
+                    <flux:navlist.item icon="users" :href="config('app.url') . '/users'"
                                        :current="request()->routeIs('users.index')"
                                        wire:navigate>{{ __('Users') }}</flux:navlist.item>
 
-                    <flux:navlist.item icon="user-circle" :href="route('roles.index')"
+                    <flux:navlist.item icon="user-circle" :href="config('app.url') . '/roles'"
                                        :current="request()->routeIs('roles.index')"
                                        wire:navigate>{{ __('Roles') }}</flux:navlist.item>
 
-                    <flux:navlist.item icon="adjustments-vertical" :href="route('permissions.index')"
+                    <flux:navlist.item icon="adjustments-vertical" :href="config('app.url') . '/permissions'"
                                        :current="request()->routeIs('permissions.index')"
                                        wire:navigate>{{ __('Permissions') }}</flux:navlist.item>
                 @endif
@@ -63,7 +63,7 @@
 
     <flux:spacer/>
 
-    @if(tenant() && auth()->user()->hasRole('super-admin-for-system'))
+    @if(tenant() && auth()->check() && auth()->user()->isSystem())
         <flux:navlist variant="outline">
             <flux:navlist.item icon="book-open-text" href="{{ config('app.url') . '/dashboard' }}" target="_blank">
                 {{ __('My account') }}
@@ -162,5 +162,8 @@
         {{ $slot }}
 
         @fluxScripts
+
+        <!-- Inactivity Tracker -->
+        <x-inactivity-tracker />
     </body>
 </html>

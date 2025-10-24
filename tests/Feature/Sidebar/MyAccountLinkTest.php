@@ -56,7 +56,7 @@ class MyAccountLinkTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_my_account_link_shows_when_in_tenant_context_and_user_has_super_admin_system_role(): void
+    public function test_my_account_link_shows_when_in_tenant_context_and_user_is_system_user(): void
     {
         tenancy()->initialize($this->tenant);
 
@@ -79,12 +79,13 @@ class MyAccountLinkTest extends TestCase
         $response->assertDontSee('My account', false);
     }
 
-    public function test_my_account_link_hidden_when_user_does_not_have_super_admin_system_role(): void
+    public function test_my_account_link_hidden_when_user_is_not_system_user(): void
     {
         tenancy()->initialize($this->tenant);
 
-        // Create tenant user with different role
+        // Create tenant-only user (is_system = false)
         $tenantUser = User::factory()->create([
+            'is_system' => false,
             'is_tenant' => true,
             'system_id' => 1,
         ]);
@@ -99,12 +100,13 @@ class MyAccountLinkTest extends TestCase
         $response->assertDontSee('My account', false);
     }
 
-    public function test_my_account_link_hidden_when_user_has_super_admin_tenant_role_not_system(): void
+    public function test_my_account_link_hidden_regardless_of_role_if_not_system_user(): void
     {
         tenancy()->initialize($this->tenant);
 
-        // Create tenant user with super-admin-for-tenant role (not system)
+        // Create tenant user with super-admin-for-tenant role but is_system = false
         $tenantUser = User::factory()->create([
+            'is_system' => false, // This is the key - regardless of role
             'is_tenant' => true,
             'system_id' => 1,
         ]);
@@ -145,18 +147,49 @@ class MyAccountLinkTest extends TestCase
 
     public function test_both_conditions_must_be_true_for_link_to_show(): void
     {
-        // Test 1: User has role but not in tenant context
+        // Test 1: User is system user but not in tenant context
         $this->actingAs($this->systemUser);
         $response = $this->get('/dashboard');
         $response->assertDontSee('My account', false);
 
-        // Test 2: In tenant context but user doesn't have role
+        // Test 2: In tenant context but user is not system user
         tenancy()->initialize($this->tenant);
-        $regularUser = User::factory()->create(['is_tenant' => true, 'system_id' => 1]);
+        $regularUser = User::factory()->create([
+            'is_system' => false, // Not a system user
+            'is_tenant' => true,
+            'system_id' => 1
+        ]);
         $regularUser->assignRole('admin-for-tenant');
         $this->tenant->users()->attach($regularUser->id);
 
         $this->actingAs($regularUser);
+        $response = $this->get('/dashboard');
+        $response->assertDontSee('My account', false);
+    }
+
+    public function test_visibility_uses_is_system_method(): void
+    {
+        // Verify isSystem() method returns correct values
+        $this->assertTrue($this->systemUser->isSystem());
+
+        $tenantOnlyUser = User::factory()->create([
+            'is_system' => false,
+            'is_tenant' => true,
+        ]);
+        $this->assertFalse($tenantOnlyUser->isSystem());
+
+        // Now verify link shows correctly based on isSystem()
+        tenancy()->initialize($this->tenant);
+
+        // System user should see link
+        $this->actingAs($this->systemUser);
+        $response = $this->get('/dashboard');
+        $response->assertSee('My account');
+
+        // Tenant-only user should not see link
+        $tenantOnlyUser->assignRole('admin-for-tenant');
+        $this->tenant->users()->attach($tenantOnlyUser->id);
+        $this->actingAs($tenantOnlyUser);
         $response = $this->get('/dashboard');
         $response->assertDontSee('My account', false);
     }

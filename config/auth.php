@@ -112,4 +112,24 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Inactivity Timeout
+    |--------------------------------------------------------------------------
+    |
+    | This option defines the automatic logout behavior when users are inactive.
+    | The timeout is measured in seconds. Warning time is shown before logout.
+    |
+    | - enabled: Enable/disable auto-logout feature
+    | - timeout: Seconds of inactivity before logout (default: 86400 = 24 hours)
+    | - warning: Seconds before timeout to show warning (default: 300 = 5 minutes)
+    |
+    */
+
+    'inactivity' => [
+        'enabled' => env('AUTH_INACTIVITY_ENABLED', true),
+        'timeout' => env('AUTH_INACTIVITY_TIMEOUT', 86400), // 24 hours
+        'warning' => env('AUTH_INACTIVITY_WARNING', 300),   // 5 minutes before logout
+    ],
+
 ];

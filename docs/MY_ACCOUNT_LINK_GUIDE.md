@@ -13,18 +13,18 @@ The "My Account" link is a special navigation item that allows system super admi
 The "My Account" link is **only visible** when **both** of the following conditions are met:
 
 1. **You are in a tenant context** - You are currently viewing a tenant's dashboard (subdomain)
-2. **You have the super-admin-for-system role** - Your account has system-level super administrator privileges
+2. **You are a system user** - Your account has the `is_system` flag set to true
 
 ### Visibility Examples
 
 ✅ **Link IS visible when:**
-- You are logged in as a system super administrator
+- You are logged in as a system user (user with `is_system = true`)
 - You are currently on a tenant's subdomain (e.g., `tenant1.localhost:8000/dashboard`)
 
 ❌ **Link IS NOT visible when:**
 - You are on the main system dashboard (not in a tenant context)
-- You are a tenant administrator without system-level privileges
-- You are a regular user with any other role (admin-for-tenant, manager, site-manager, foreman)
+- You are a tenant-only user (user with `is_system = false`)
+- You are not authenticated
 
 ## How to Use the "My Account" Link
 
@@ -56,10 +56,11 @@ You're troubleshooting an issue for a tenant and need to compare their settings 
 
 ## Technical Details
 
-### Role Requirements
-- Must have the `super-admin-for-system` role
-- The `super-admin-for-tenant` role will **not** show the link
-- Regular tenant roles (admin, manager, foreman) will **not** show the link
+### User Requirements
+- Must be a system user (`is_system` column set to `true` in the users table)
+- Tenant-only users (`is_system = false`) will **not** see the link, regardless of their roles
+- The visibility check uses the `isSystem()` method on the User model, which directly checks the `is_system` database column
+- This approach is more reliable than role-based checking in multi-tenant contexts
 
 ### URL Configuration
 The link dynamically uses your application's configured system URL from `config('app.url')`, ensuring it always points to the correct system dashboard regardless of which tenant subdomain you're currently viewing.
@@ -74,17 +75,21 @@ Check the following:
    - Check your URL - it should be on a subdomain (e.g., `tenant1.localhost`)
    - If you're on the main domain, the link won't appear
 
-2. **Do you have the correct role?**
-   - Verify you have `super-admin-for-system` role (not `super-admin-for-tenant`)
-   - Contact your system administrator if you need this role
+2. **Are you a system user?**
+   - Verify your user account has `is_system = true` in the database
+   - You can check this by asking your system administrator
+   - Contact your system administrator if you need system user privileges
 
 3. **Are you logged in?**
    - Ensure you're properly authenticated
    - Try logging out and logging back in
+   - Clear your browser cache and Laravel's cache if needed
 
 ## Security Notes
 
-- The link is only visible to users with system-level super administrator privileges
-- This prevents regular tenant users from accessing system-level administration functions
+- The link is only visible to system users (users with `is_system = true`)
+- This prevents tenant-only users from accessing system-level administration functions
+- The visibility check uses a direct database column check, not role-based permissions
+- This approach is more reliable in multi-tenant contexts where role checking can be complex
 - The link respects all authentication and authorization rules
 - Session and authentication context is maintained when opening in a new tab
