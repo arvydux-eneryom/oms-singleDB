@@ -18,8 +18,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'view_project_details', 'guard_name' => 'web'],
             ['name' => 'view_data_entry', 'guard_name' => 'web'],
 
-
-/*
+            /*
             Potential permissions to add later
 
             ['name' => 'View data entry list', 'guard_name' => 'web'],

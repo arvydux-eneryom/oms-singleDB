@@ -17,23 +17,35 @@ class Index extends Component
 {
     // State properties
     public int $telegramAuthState = 0; //  0 - not logged in, 1 - waiting code, 3 - logged in, 4 - logged out
+
     public array $channels = [];
+
     public string $qrSvg = '';
+
     public ?array $telegramLoggedUserData = [];
+
     public string $phone = '';
+
     public string $loginCode = '';
+
     public string $title = '';
+
     public string $description = '';
 
     // Services
     protected TelegramSessionRepository $sessionRepository;
+
     protected TelegramAuthService $authService;
+
     protected TelegramChannelService $channelService;
+
     protected TelegramMessageService $messageService;
+
     protected TelegramClientService $clientService;
 
     // Session tracking
     protected ?TelegramSession $currentSession = null;
+
     protected ?API $client = null;
 
     protected $rules = [
@@ -43,11 +55,11 @@ class Index extends Component
 
     public function boot(): void
     {
-        $this->sessionRepository = new TelegramSessionRepository();
+        $this->sessionRepository = new TelegramSessionRepository;
         $this->clientService = new TelegramClientService($this->sessionRepository);
         $this->authService = new TelegramAuthService($this->sessionRepository, $this->clientService);
-        $this->channelService = new TelegramChannelService();
-        $this->messageService = new TelegramMessageService();
+        $this->channelService = new TelegramChannelService;
+        $this->messageService = new TelegramMessageService;
     }
 
     public function mount()
@@ -95,7 +107,7 @@ class Index extends Component
     public function getQrCode()
     {
         try {
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->currentSession = $this->authService->getOrCreateSession(
                     Auth::id(),
                     request()->ip(),
@@ -105,17 +117,19 @@ class Index extends Component
             }
 
             // Check if client initialization failed
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for QR code generation', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try again.');
+
                 return;
             }
 
             // Check if already authorized
             if ($this->clientService->isAuthorized($this->client)) {
                 $this->mount();
+
                 return;
             }
 
@@ -144,7 +158,7 @@ class Index extends Component
         ]);
 
         try {
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->currentSession = $this->authService->getOrCreateSession(
                     Auth::id(),
                     request()->ip(),
@@ -154,11 +168,12 @@ class Index extends Component
             }
 
             // Check if client initialization failed
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for phone login', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try again.');
+
                 return;
             }
 
@@ -192,18 +207,19 @@ class Index extends Component
         $this->validate(['loginCode' => ['required', 'digits:5']]);
 
         try {
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->currentSession = $this->authService->getOrCreateSession(Auth::id());
                 $this->client = $this->clientService->initializeClient($this->currentSession);
             }
 
             // Check if client initialization failed
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for phone login completion', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try logging in again.');
                 $this->mount();
+
                 return;
             }
 
@@ -220,7 +236,7 @@ class Index extends Component
             Log::error('Complete phone login failed', [
                 'error' => $e->getMessage(),
             ]);
-            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            session()->flash('error', 'An error occurred: '.$e->getMessage());
             $this->mount();
         }
     }
@@ -232,7 +248,7 @@ class Index extends Component
     {
         try {
             // Get current session if not already set
-            if (!$this->currentSession) {
+            if (! $this->currentSession) {
                 $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
             }
 
@@ -264,19 +280,20 @@ class Index extends Component
     {
         try {
             // Ensure we have a session
-            if (!$this->currentSession) {
+            if (! $this->currentSession) {
                 $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->client = $this->clientService->initializeClient($this->currentSession);
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for getting channels', [
                     'user_id' => Auth::id(),
                 ]);
                 $this->channels = [];
+
                 return;
             }
 
@@ -285,7 +302,7 @@ class Index extends Component
             Log::error('Failed to get channels', [
                 'error' => $e->getMessage(),
             ]);
-            session()->flash('error', 'Failed to get Telegram channels: ' . $e->getMessage());
+            session()->flash('error', 'Failed to get Telegram channels: '.$e->getMessage());
             $this->channels = [];
         }
     }
@@ -302,19 +319,20 @@ class Index extends Component
 
         try {
             // Ensure we have a session
-            if (!$this->currentSession) {
+            if (! $this->currentSession) {
                 $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->client = $this->clientService->initializeClient($this->currentSession);
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for channel creation', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try again.');
+
                 return;
             }
 
@@ -332,7 +350,7 @@ class Index extends Component
             Log::error('Channel creation failed', [
                 'error' => $e->getMessage(),
             ]);
-            session()->flash('error', 'Channel creation failed: ' . $e->getMessage());
+            session()->flash('error', 'Channel creation failed: '.$e->getMessage());
         }
     }
 
@@ -343,19 +361,20 @@ class Index extends Component
     {
         try {
             // Ensure we have a session
-            if (!$this->currentSession) {
+            if (! $this->currentSession) {
                 $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->client = $this->clientService->initializeClient($this->currentSession);
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for channel deletion', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try again.');
+
                 return;
             }
 
@@ -382,19 +401,20 @@ class Index extends Component
     {
         try {
             // Ensure we have a session
-            if (!$this->currentSession) {
+            if (! $this->currentSession) {
                 $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->client = $this->clientService->initializeClient($this->currentSession);
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for sending invite', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try again.');
+
                 return;
             }
 
@@ -409,7 +429,7 @@ class Index extends Component
             Log::error('Failed to send invite', [
                 'error' => $e->getMessage(),
             ]);
-            session()->flash('error', 'Failed to send invite: ' . $e->getMessage());
+            session()->flash('error', 'Failed to send invite: '.$e->getMessage());
         }
     }
 
@@ -420,23 +440,24 @@ class Index extends Component
     {
         try {
             // Ensure we have a session
-            if (!$this->currentSession) {
+            if (! $this->currentSession) {
                 $this->currentSession = $this->sessionRepository->getActiveSession(Auth::id());
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 $this->client = $this->clientService->initializeClient($this->currentSession);
             }
 
-            if (!$this->client) {
+            if (! $this->client) {
                 Log::error('Failed to initialize Telegram client for sending message', [
                     'user_id' => Auth::id(),
                 ]);
                 session()->flash('error', 'Failed to initialize Telegram session. Please try again.');
+
                 return;
             }
 
-            $message = "Welcome to our channel. This is a message from Laravel system";
+            $message = 'Welcome to our channel. This is a message from Laravel system';
             $result = $this->messageService->sendMessageToChannel($this->client, $channelId, $message);
 
             if ($result['success']) {
@@ -448,7 +469,7 @@ class Index extends Component
             Log::error('Failed to send message', [
                 'error' => $e->getMessage(),
             ]);
-            session()->flash('error', 'Failed to send message: ' . $e->getMessage());
+            session()->flash('error', 'Failed to send message: '.$e->getMessage());
         }
     }
 
@@ -470,6 +491,7 @@ class Index extends Component
         // Show dashboard if logged in
         if ($this->telegramAuthState === 3) {
             $this->getTelegramChannels();
+
             return view('livewire.integrations.telegram.dashboard');
         }
 

@@ -11,8 +11,7 @@ readonly class IncomingSmsData
         public string $body,
         public string $accountSid,
         public ?string $smsStatus = null,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {

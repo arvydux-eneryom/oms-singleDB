@@ -2,8 +2,6 @@
 
 namespace Tests\Unit\Services;
 
-use App\Models\SmsMessage;
-use App\Models\User;
 use App\Repositories\SmsMessageRepository;
 use App\Services\TwilioSmsService;
 use Illuminate\Support\Facades\Log;
@@ -11,7 +9,6 @@ use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Twilio\Exceptions\TwilioException;
-use Twilio\Rest\Api\V2010\Account\MessageInstance;
 use Twilio\Rest\Api\V2010\Account\MessageList;
 use Twilio\Rest\Client;
 
@@ -27,6 +24,7 @@ class TwilioSmsServiceTest extends TestCase
     {
         $mockRepository = Mockery::mock(SmsMessageRepository::class);
         $mockRepository->shouldIgnoreMissing();
+
         return new TwilioSmsService($mockRepository);
     }
 

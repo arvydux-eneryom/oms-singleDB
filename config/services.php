@@ -48,7 +48,7 @@ return [
         'from' => env('TWILIO_FROM'),
         'sms_common_url' => env('TWILIO_SMS_COMMON_URL', ''),
         'outgoing_sms_status_callback_url_path' => env('TWILIO_OUTGOING_SMS_STATUS_CALLBACK_URL_PATH', ''),
-        'outgoing_sms_status_callback_url' => env('TWILIO_SMS_COMMON_URL', '') . env('TWILIO_OUTGOING_SMS_STATUS_CALLBACK_URL_PATH', ''),
+        'outgoing_sms_status_callback_url' => env('TWILIO_SMS_COMMON_URL', '').env('TWILIO_OUTGOING_SMS_STATUS_CALLBACK_URL_PATH', ''),
         'incoming_sms_url_path' => env('TWILIO_INCOMING_SMS_URL_PATH', ''),
     ],
 

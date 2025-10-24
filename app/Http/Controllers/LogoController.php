@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Company;
+use Illuminate\Http\Request;
 
 class LogoController extends Controller
 {
@@ -24,4 +24,3 @@ class LogoController extends Controller
         return back()->with('success', 'Logo uploaded successfully.');
     }
 }
-

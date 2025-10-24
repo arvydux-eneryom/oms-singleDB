@@ -24,7 +24,7 @@ class VerifyTwilioWebhook
 
         $authToken = config('services.twilio.token');
 
-        if (!$authToken) {
+        if (! $authToken) {
             Log::error('Twilio auth token not configured');
             abort(500, 'SMS service configuration error');
         }
@@ -34,7 +34,7 @@ class VerifyTwilioWebhook
         // Get the signature from the request headers
         $signature = $request->header('X-Twilio-Signature');
 
-        if (!$signature) {
+        if (! $signature) {
             Log::warning('Twilio webhook request missing signature', [
                 'ip' => $request->ip(),
                 'url' => $request->fullUrl(),
@@ -51,7 +51,7 @@ class VerifyTwilioWebhook
         // Validate the signature
         $isValid = $validator->validate($signature, $url, $postData);
 
-        if (!$isValid) {
+        if (! $isValid) {
             Log::warning('Invalid Twilio webhook signature', [
                 'ip' => $request->ip(),
                 'url' => $url,

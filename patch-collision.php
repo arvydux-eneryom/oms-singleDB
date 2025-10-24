@@ -1,8 +1,8 @@
 <?php
 
-$printerFile = __DIR__ . '/vendor/nunomaduro/collision/src/Adapters/Phpunit/Printers/DefaultPrinter.php';
+$printerFile = __DIR__.'/vendor/nunomaduro/collision/src/Adapters/Phpunit/Printers/DefaultPrinter.php';
 
-if (!file_exists($printerFile)) {
+if (! file_exists($printerFile)) {
     echo "Collision printer file not found.\n";
     exit(1);
 }

@@ -3,10 +3,10 @@
 namespace App\Livewire\Tenancy\Customers;
 
 use App\Models\Customer;
-use Livewire\Component;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 use Livewire\Attributes\Computed;
+use Livewire\Component;
 
 class Edit extends Component
 {
@@ -15,25 +15,39 @@ class Edit extends Component
 
     // Form data
     public $customer = [];
+
     public $phones = [];
+
     public $phoneTypes = [];
+
     public $isSmsEnabled = [];
+
     public $emails = [];
+
     public $emailTypes = [];
+
     public $isVerified = [];
+
     public $contacts = [];
+
     public $serviceAddresses = [];
+
     public $billingAddresses = [];
 
     // UI state
     public string $currentTab = 'general';
+
     public bool $isSubmitting = false;
+
     public array $tabErrors = [];
+
     public int $tenantId = 0;
+
     public string $googleMapsApiKey = '';
 
     // Options
     public $phoneTypeOptions = ['Primary', 'Work', 'Home', 'Emergency'];
+
     public $emailTypeOptions = ['Primary', 'Work', 'Personal'];
 
     // Track original company name for duplicate detection
@@ -121,23 +135,23 @@ class Edit extends Component
         // Load phones with proper normalization
         $this->phones = $customer->customerPhones->pluck('phone')->toArray();
         $this->phoneTypes = $customer->customerPhones->pluck('type')
-            ->map(fn($type) => ucfirst($type ?: 'primary'))
+            ->map(fn ($type) => ucfirst($type ?: 'primary'))
             ->toArray();
         $this->isSmsEnabled = $customer->customerPhones->pluck('is_sms_enabled')
-            ->map(fn($val) => (bool)$val)
+            ->map(fn ($val) => (bool) $val)
             ->toArray();
 
         // Load emails with proper normalization
         $this->emails = $customer->customerEmails->pluck('email')->toArray();
         $this->emailTypes = $customer->customerEmails->pluck('type')
-            ->map(fn($type) => ucfirst($type ?: 'primary'))
+            ->map(fn ($type) => ucfirst($type ?: 'primary'))
             ->toArray();
         $this->isVerified = $customer->customerEmails->pluck('is_verified')
-            ->map(fn($val) => (bool)$val)
+            ->map(fn ($val) => (bool) $val)
             ->toArray();
 
         // Load contacts
-        $this->contacts = $customer->customerContacts->map(fn($contact) => [
+        $this->contacts = $customer->customerContacts->map(fn ($contact) => [
             'name' => $contact->name ?? '',
             'phone' => $contact->phone ?? '',
             'email' => $contact->email ?? '',
@@ -149,7 +163,7 @@ class Edit extends Component
         }
 
         // Load service addresses
-        $this->serviceAddresses = $customer->customerServiceAddresses->map(fn($address) => [
+        $this->serviceAddresses = $customer->customerServiceAddresses->map(fn ($address) => [
             'address' => $address->address ?? '',
             'country' => $address->country ?? '',
             'city' => $address->city ?? '',
@@ -167,7 +181,7 @@ class Edit extends Component
         }
 
         // Load billing addresses
-        $this->billingAddresses = $customer->customerBillingAddresses->map(fn($address) => [
+        $this->billingAddresses = $customer->customerBillingAddresses->map(fn ($address) => [
             'address' => $address->address ?? '',
             'country' => $address->country ?? '',
             'city' => $address->city ?? '',
@@ -230,8 +244,9 @@ class Edit extends Component
         $normalized = preg_replace('/[^\d+]/', '', $phone);
         $normalized = ltrim($normalized, '+');
         if (str_starts_with($phone, '+')) {
-            $normalized = '+' . $normalized;
+            $normalized = '+'.$normalized;
         }
+
         return $normalized;
     }
 
@@ -327,6 +342,7 @@ class Edit extends Component
             if ($duplicate) {
                 $this->addError('customer.company', 'A customer with this company name already exists.');
                 $this->switchTab('general');
+
                 return;
             }
         }
@@ -340,13 +356,13 @@ class Edit extends Component
             $this->updateTabErrors();
 
             // Switch to first tab with errors
-            if (!empty($this->tabErrors['general'])) {
+            if (! empty($this->tabErrors['general'])) {
                 $this->switchTab('general');
-            } elseif (!empty($this->tabErrors['contacts'])) {
+            } elseif (! empty($this->tabErrors['contacts'])) {
                 $this->switchTab('contacts');
-            } elseif (!empty($this->tabErrors['service'])) {
+            } elseif (! empty($this->tabErrors['service'])) {
                 $this->switchTab('service');
-            } elseif (!empty($this->tabErrors['billing'])) {
+            } elseif (! empty($this->tabErrors['billing'])) {
                 $this->switchTab('billing');
             }
 
@@ -366,25 +382,25 @@ class Edit extends Component
                     'postcode' => $validated['customer']['postcode'] ?? null,
                     'latitude' => $validated['customer']['latitude'] ?? null,
                     'longitude' => $validated['customer']['longitude'] ?? null,
-                    'status' => (bool)($validated['customer']['status'] ?? false),
+                    'status' => (bool) ($validated['customer']['status'] ?? false),
                 ]);
 
                 // Update phones efficiently (delete all, then bulk insert)
                 $customer->customerPhones()->delete();
                 $phonesData = [];
                 foreach ($this->phones as $index => $phone) {
-                    if (!empty($phone)) {
+                    if (! empty($phone)) {
                         $phonesData[] = [
                             'customer_id' => $customer->id,
                             'phone' => $this->normalizePhone($phone),
                             'type' => strtolower($this->phoneTypes[$index] ?? 'primary'),
-                            'is_sms_enabled' => (bool)($this->isSmsEnabled[$index] ?? false),
+                            'is_sms_enabled' => (bool) ($this->isSmsEnabled[$index] ?? false),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];
                     }
                 }
-                if (!empty($phonesData)) {
+                if (! empty($phonesData)) {
                     DB::table('customer_phones')->insert($phonesData);
                 }
 
@@ -392,18 +408,18 @@ class Edit extends Component
                 $customer->customerEmails()->delete();
                 $emailsData = [];
                 foreach ($this->emails as $index => $email) {
-                    if (!empty($email)) {
+                    if (! empty($email)) {
                         $emailsData[] = [
                             'customer_id' => $customer->id,
                             'email' => $this->normalizeEmail($email),
                             'type' => strtolower($this->emailTypes[$index] ?? 'primary'),
-                            'is_verified' => (bool)($this->isVerified[$index] ?? false),
+                            'is_verified' => (bool) ($this->isVerified[$index] ?? false),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];
                     }
                 }
-                if (!empty($emailsData)) {
+                if (! empty($emailsData)) {
                     DB::table('customer_emails')->insert($emailsData);
                 }
 
@@ -411,18 +427,18 @@ class Edit extends Component
                 $customer->customerContacts()->delete();
                 $contactsData = [];
                 foreach ($this->contacts as $contact) {
-                    if (!empty($contact['name']) || !empty($contact['email']) || !empty($contact['phone'])) {
+                    if (! empty($contact['name']) || ! empty($contact['email']) || ! empty($contact['phone'])) {
                         $contactsData[] = [
                             'customer_id' => $customer->id,
                             'name' => $contact['name'] ?? null,
-                            'email' => !empty($contact['email']) ? $this->normalizeEmail($contact['email']) : null,
-                            'phone' => !empty($contact['phone']) ? $this->normalizePhone($contact['phone']) : null,
+                            'email' => ! empty($contact['email']) ? $this->normalizeEmail($contact['email']) : null,
+                            'phone' => ! empty($contact['phone']) ? $this->normalizePhone($contact['phone']) : null,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];
                     }
                 }
-                if (!empty($contactsData)) {
+                if (! empty($contactsData)) {
                     DB::table('customer_contacts')->insert($contactsData);
                 }
 
@@ -430,7 +446,7 @@ class Edit extends Component
                 $customer->customerServiceAddresses()->delete();
                 $serviceAddressesData = [];
                 foreach ($this->serviceAddresses as $serviceAddress) {
-                    if (!empty($serviceAddress['address'])) {
+                    if (! empty($serviceAddress['address'])) {
                         $serviceAddressesData[] = [
                             'customer_id' => $customer->id,
                             'address' => $serviceAddress['address'],
@@ -444,7 +460,7 @@ class Edit extends Component
                         ];
                     }
                 }
-                if (!empty($serviceAddressesData)) {
+                if (! empty($serviceAddressesData)) {
                     DB::table('customer_service_addresses')->insert($serviceAddressesData);
                 }
 
@@ -452,7 +468,7 @@ class Edit extends Component
                 $customer->customerBillingAddresses()->delete();
                 $billingAddressesData = [];
                 foreach ($this->billingAddresses as $billingAddress) {
-                    if (!empty($billingAddress['address'])) {
+                    if (! empty($billingAddress['address'])) {
                         $billingAddressesData[] = [
                             'customer_id' => $customer->id,
                             'address' => $billingAddress['address'],
@@ -466,12 +482,12 @@ class Edit extends Component
                         ];
                     }
                 }
-                if (!empty($billingAddressesData)) {
+                if (! empty($billingAddressesData)) {
                     DB::table('customer_billing_addresses')->insert($billingAddressesData);
                 }
             });
 
-            session()->flash('success', 'Customer "' . $this->customerModel->company . '" successfully updated.');
+            session()->flash('success', 'Customer "'.$this->customerModel->company.'" successfully updated.');
             $this->redirectRoute('customers.index', navigate: true);
         } catch (\Exception $e) {
             $this->isSubmitting = false;

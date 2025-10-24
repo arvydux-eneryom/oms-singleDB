@@ -25,7 +25,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -49,7 +49,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'testco.' . config('tenancy.central_domains')[0],
+            'domain' => 'testco.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'testco',
@@ -74,7 +74,7 @@ class EditTest extends TestCase
         $tenant->name = 'Old Company Name';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'oldco.' . config('tenancy.central_domains')[0],
+            'domain' => 'oldco.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Old Company Name',
             'subdomain' => 'oldco',
@@ -109,7 +109,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'oldtest.' . config('tenancy.central_domains')[0],
+            'domain' => 'oldtest.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'oldtest',
@@ -125,7 +125,7 @@ class EditTest extends TestCase
             ->assertHasNoErrors();
 
         $domain->refresh();
-        $expectedDomain = 'newtest.' . config('tenancy.central_domains')[0];
+        $expectedDomain = 'newtest.'.config('tenancy.central_domains')[0];
         $this->assertEquals($expectedDomain, $domain->domain);
     }
 
@@ -140,7 +140,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -167,7 +167,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -194,7 +194,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -221,7 +221,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -248,7 +248,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -275,7 +275,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -302,7 +302,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -330,7 +330,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'testunassign.' . config('tenancy.central_domains')[0],
+            'domain' => 'testunassign.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'testunassign',
@@ -363,7 +363,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -401,7 +401,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'oldtest.' . config('tenancy.central_domains')[0],
+            'domain' => 'oldtest.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'oldtest',
@@ -416,7 +416,7 @@ class EditTest extends TestCase
             ->call('save');
 
         $domain->refresh();
-        $expectedDomain = 'newtest.' . config('tenancy.central_domains')[0];
+        $expectedDomain = 'newtest.'.config('tenancy.central_domains')[0];
         $this->assertEquals($expectedDomain, $domain->domain);
     }
 
@@ -431,7 +431,7 @@ class EditTest extends TestCase
         $tenant->name = 'Old Name';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'oldname.' . config('tenancy.central_domains')[0],
+            'domain' => 'oldname.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Old Name',
             'subdomain' => 'oldname',
@@ -455,7 +455,7 @@ class EditTest extends TestCase
         $tenant->name = 'Test Company';
         $tenant->save();
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',

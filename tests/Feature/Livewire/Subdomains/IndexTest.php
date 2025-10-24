@@ -39,7 +39,7 @@ class IndexTest extends TestCase
         $tenant->save();
 
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -65,7 +65,7 @@ class IndexTest extends TestCase
         $tenant->save();
 
         Domain::create([
-            'domain' => 'other.' . config('tenancy.central_domains')[0],
+            'domain' => 'other.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Other System Company',
             'subdomain' => 'other',
@@ -91,7 +91,7 @@ class IndexTest extends TestCase
         $tenant->save();
 
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -122,7 +122,7 @@ class IndexTest extends TestCase
         $tenant->save();
 
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -151,7 +151,7 @@ class IndexTest extends TestCase
         $tenant->save();
 
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
             'subdomain' => 'test',
@@ -173,7 +173,6 @@ class IndexTest extends TestCase
         ]);
     }
 
-
     public function test_pagination_works_correctly(): void
     {
         $user = User::factory()->create([
@@ -187,7 +186,7 @@ class IndexTest extends TestCase
             $tenant->name = "Company $i";
             $tenant->save();
             Domain::create([
-                'domain' => "test{$i}." . config('tenancy.central_domains')[0],
+                'domain' => "test{$i}.".config('tenancy.central_domains')[0],
                 'tenant_id' => $tenant->id,
                 'name' => "Company $i",
                 'subdomain' => "test{$i}",
@@ -216,7 +215,7 @@ class IndexTest extends TestCase
         $tenant1->name = 'First Company';
         $tenant1->save();
         $domain1 = Domain::create([
-            'domain' => 'first.' . config('tenancy.central_domains')[0],
+            'domain' => 'first.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant1->id,
             'name' => 'First Company',
             'subdomain' => 'first',
@@ -228,7 +227,7 @@ class IndexTest extends TestCase
         $tenant2->name = 'Second Company';
         $tenant2->save();
         $domain2 = Domain::create([
-            'domain' => 'second.' . config('tenancy.central_domains')[0],
+            'domain' => 'second.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant2->id,
             'name' => 'Second Company',
             'subdomain' => 'second',

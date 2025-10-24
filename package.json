@@ -6,7 +6,7 @@
         "dev": "vite",
         "lint": "npm run lint:js && npm run lint:prettier",
         "lint:js": "eslint resources/js/**/*.js",
-        "lint:blade": "blade-formatter --check resources/**/*.blade.php",
+        "lint:blade": "blade-formatter --check-formatted resources/**/*.blade.php",
         "lint:prettier": "prettier --check resources/js/**/*.js resources/css/**/*.css",
         "format": "npm run format:js && npm run format:blade && npm run format:prettier",
         "format:js": "eslint --fix resources/js/**/*.js",

@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
-use Livewire\Volt\Volt;
-
 use App\Livewire\Roles;
 use App\Livewire\Tenancy;
+use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
+use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
+use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+
 /*
 |--------------------------------------------------------------------------
 | Tenant Routes
@@ -69,20 +69,17 @@ Route::middleware([
             ->name('logout');
     });
 
-
     Route::get('roles', Roles\Index::class)->name('roles.index');
     Route::get('roles/create', Roles\Create::class)->name('roles.create');
     Route::get('roles/{role}/edit', Roles\Edit::class)->name('roles.edit');
 
+    Route::redirect('settings', 'settings/profile');
 
-        Route::redirect('settings', 'settings/profile');
-
-        Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
-        Volt::route('settings/password', 'settings.password')->name('settings.password');
-        Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-
+    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
+    Volt::route('settings/password', 'settings.password')->name('settings.password');
+    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 
     Route::get('/a', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+        return 'This is your multi-tenant application. The id of the current tenant is '.tenant('id');
     });
 });

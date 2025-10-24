@@ -52,7 +52,7 @@ class CreateTest extends TestCase
         $this->assertDatabaseHas('domains', [
             'name' => 'Acme Corporation',
             'subdomain' => 'acme123',
-            'domain' => 'acme123.' . config('tenancy.central_domains')[0],
+            'domain' => 'acme123.'.config('tenancy.central_domains')[0],
             'system_id' => 1,
             'tenant_id' => $tenant->id,
         ]);
@@ -98,7 +98,7 @@ class CreateTest extends TestCase
 
         $user->refresh();
 
-        $this->assertTrue((bool)$user->is_tenant);
+        $this->assertTrue((bool) $user->is_tenant);
     }
 
     public function test_company_name_is_required(): void
@@ -210,7 +210,7 @@ class CreateTest extends TestCase
         $tenant->companyName = 'Existing Company';
         $tenant->save();
         Domain::create([
-            'domain' => 'existing.' . config('tenancy.central_domains')[0],
+            'domain' => 'existing.'.config('tenancy.central_domains')[0],
             'tenant_id' => $tenant->id,
             'name' => 'Existing Company',
             'subdomain' => 'existing',
@@ -275,7 +275,7 @@ class CreateTest extends TestCase
             ->call('save');
 
         $domain = Domain::where('subdomain', 'mytest')->first();
-        $expectedDomain = 'mytest.' . config('tenancy.central_domains')[0];
+        $expectedDomain = 'mytest.'.config('tenancy.central_domains')[0];
 
         $this->assertEquals($expectedDomain, $domain->domain);
     }

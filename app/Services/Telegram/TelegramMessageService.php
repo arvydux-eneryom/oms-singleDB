@@ -14,7 +14,7 @@ class TelegramMessageService
     {
         try {
             // Validate channel ID
-            if (!is_numeric($channelId)) {
+            if (! is_numeric($channelId)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid channel ID.',
@@ -56,7 +56,7 @@ class TelegramMessageService
 
             return [
                 'success' => false,
-                'error' => 'Failed to send message: ' . $e->getMessage(),
+                'error' => 'Failed to send message: '.$e->getMessage(),
             ];
         }
     }
@@ -78,7 +78,7 @@ class TelegramMessageService
             }
 
             // Validate username format
-            if (!preg_match('/^[a-zA-Z0-9_]{5,32}$/', $username)) {
+            if (! preg_match('/^[a-zA-Z0-9_]{5,32}$/', $username)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid Telegram username format.',
@@ -103,7 +103,7 @@ class TelegramMessageService
 
             // Send message
             $result = $client->messages->sendMessage([
-                'peer' => '@' . $username,
+                'peer' => '@'.$username,
                 'message' => $message,
             ]);
 
@@ -120,7 +120,7 @@ class TelegramMessageService
 
             return [
                 'success' => false,
-                'error' => 'Failed to send message: ' . $e->getMessage(),
+                'error' => 'Failed to send message: '.$e->getMessage(),
             ];
         }
     }
@@ -152,7 +152,7 @@ class TelegramMessageService
 
             return [
                 'success' => false,
-                'error' => 'Failed to forward message: ' . $e->getMessage(),
+                'error' => 'Failed to forward message: '.$e->getMessage(),
             ];
         }
     }
@@ -199,7 +199,7 @@ class TelegramMessageService
 
             return [
                 'success' => false,
-                'error' => 'Failed to edit message: ' . $e->getMessage(),
+                'error' => 'Failed to edit message: '.$e->getMessage(),
             ];
         }
     }
@@ -228,7 +228,7 @@ class TelegramMessageService
 
             return [
                 'success' => false,
-                'error' => 'Failed to delete messages: ' . $e->getMessage(),
+                'error' => 'Failed to delete messages: '.$e->getMessage(),
             ];
         }
     }

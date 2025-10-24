@@ -31,6 +31,7 @@ class Customer extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
     public function customerEmails(): HasMany
     {
         return $this->hasMany(CustomerEmail::class);

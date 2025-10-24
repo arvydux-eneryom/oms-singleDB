@@ -9,6 +9,7 @@ use Spatie\Permission\Models\Permission;
 class Create extends Component
 {
     public string $tenant = '';
+
     public string $name = '';
 
     public function mount()
@@ -20,7 +21,7 @@ class Create extends Component
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('permissions', 'name')],
-            'tenant' => ['numeric']
+            'tenant' => ['numeric'],
         ]);
 
         Permission::create($validated);

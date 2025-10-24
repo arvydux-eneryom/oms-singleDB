@@ -14,7 +14,7 @@ class RoleHasPermissionsSeeder extends Seeder
             ->where('name', 'super-admin-for-system')
             ->first();
 
-        if (!$superAdminRole) {
+        if (! $superAdminRole) {
             return;
         }
 

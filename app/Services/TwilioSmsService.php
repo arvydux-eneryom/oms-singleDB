@@ -39,14 +39,14 @@ class TwilioSmsService implements SmsServiceInterface
 
             return $message;
         } catch (TwilioException $e) {
-            Log::error('Twilio SMS send failed: ' . $e->getMessage(), [
+            Log::error('Twilio SMS send failed: '.$e->getMessage(), [
                 'to' => $to,
                 'body' => $body,
                 'error_code' => $e->getCode(),
             ]);
 
             throw new \RuntimeException(
-                'Failed to send SMS: ' . $this->getUserFriendlyErrorMessage($e),
+                'Failed to send SMS: '.$this->getUserFriendlyErrorMessage($e),
                 $e->getCode(),
                 $e
             );
@@ -85,7 +85,7 @@ class TwilioSmsService implements SmsServiceInterface
     {
         $this->smsMessageRepository->createIncoming($data);
 
-        Log::info('Incoming SMS saved to DB. SID: ' . $data->messageSid);
+        Log::info('Incoming SMS saved to DB. SID: '.$data->messageSid);
 
         return response('', 200);
     }
@@ -98,9 +98,9 @@ class TwilioSmsService implements SmsServiceInterface
         $updated = $this->smsMessageRepository->updateStatus($data->messageSid, $data->smsStatus);
 
         if ($updated) {
-            Log::info('Outgoing SMS status updated in DB. SID: ' . $data->messageSid . ', Status: ' . $data->smsStatus);
+            Log::info('Outgoing SMS status updated in DB. SID: '.$data->messageSid.', Status: '.$data->smsStatus);
         } else {
-            Log::warning('Attempted to update non-existent SMS. SID: ' . $data->messageSid);
+            Log::warning('Attempted to update non-existent SMS. SID: '.$data->messageSid);
         }
 
         return response('', 200);
@@ -118,7 +118,7 @@ class TwilioSmsService implements SmsServiceInterface
             userId: $userId
         );
 
-        Log::info('Outgoing SMS saved to DB. SID: ' . $message->sid);
+        Log::info('Outgoing SMS saved to DB. SID: '.$message->sid);
     }
 
     public function getAccountBalance(): array
@@ -127,16 +127,16 @@ class TwilioSmsService implements SmsServiceInterface
             // Fetch the current account balance
             $balance = $this->client->balance->fetch();
 
-            $balanceValue = (float)$balance->balance;
+            $balanceValue = (float) $balance->balance;
             $currency = $balance->currency ?? 'USD';
 
             return [
-                'balance' => (string)$balanceValue,
+                'balance' => (string) $balanceValue,
                 'currency' => $currency,
-                'formatted' => number_format($balanceValue, 2) . ' ' . $currency,
+                'formatted' => number_format($balanceValue, 2).' '.$currency,
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to fetch Twilio account balance: ' . $e->getMessage(), [
+            Log::error('Failed to fetch Twilio account balance: '.$e->getMessage(), [
                 'error_code' => method_exists($e, 'getCode') ? $e->getCode() : null,
             ]);
 

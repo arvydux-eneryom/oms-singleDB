@@ -10,9 +10,12 @@ use Livewire\Component;
 class Edit extends Component
 {
     public Domain $subdomain;
+
     public string $domain = '';
-    //TODO : rename $subdomainText to something better
+
+    // TODO : rename $subdomainText to something better
     public string $subdomainText = '';
+
     public string $name = '';
 
     public function mount(Domain $subdomain)
@@ -34,7 +37,7 @@ class Edit extends Component
             'name' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
         ]);
 
@@ -43,7 +46,7 @@ class Edit extends Component
             'domain' => $this->convertSubdomainToDomain($validated['subdomainText']),
         ]);
 
-       // dd($this->subdomain, $this->subdomain->subdomain);
+        // dd($this->subdomain, $this->subdomain->subdomain);
 
         // Update the related tenant's name
         $this->subdomain->tenant->name = $this->name;
@@ -76,6 +79,6 @@ class Edit extends Component
     private function convertSubdomainToDomain(string $subdomain): string
     {
         // Convert subdomain to full domain using the central domain
-        return $subdomain . '.' . config('tenancy.central_domains')[0];
+        return $subdomain.'.'.config('tenancy.central_domains')[0];
     }
 }

@@ -24,7 +24,7 @@ class CleanupExpiredTelegramSessions implements ShouldQueue
      */
     public function handle(): void
     {
-        $repository = new TelegramSessionRepository();
+        $repository = new TelegramSessionRepository;
 
         try {
             $cleanedCount = $repository->cleanupExpiredSessions();
@@ -33,7 +33,7 @@ class CleanupExpiredTelegramSessions implements ShouldQueue
                 'cleaned_sessions' => $cleanedCount,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Telegram session cleanup failed: ' . $e->getMessage(), [
+            Log::error('Telegram session cleanup failed: '.$e->getMessage(), [
                 'exception' => get_class($e),
                 'trace' => $e->getTraceAsString(),
             ]);

@@ -4,20 +4,21 @@ namespace Tests\Feature\Livewire\Customers;
 
 use App\Livewire\Tenancy\Customers\Index;
 use App\Models\Customer;
-use App\Models\CustomerPhone;
 use App\Models\CustomerEmail;
+use App\Models\CustomerPhone;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class IndexTest extends TestCase
 {
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void

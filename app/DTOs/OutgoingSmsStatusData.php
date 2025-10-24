@@ -7,8 +7,7 @@ readonly class OutgoingSmsStatusData
     public function __construct(
         public string $messageSid,
         public string $smsStatus,
-    ) {
-    }
+    ) {}
 
     public static function fromArray(array $data): self
     {

@@ -6,7 +6,6 @@ use App\DTOs\IncomingSmsData;
 use App\Models\SentSmsQuestion;
 use App\Models\SmsMessage;
 use App\Models\SmsQuestion;
-use App\Models\SmsResponse;
 use App\Repositories\SentSmsQuestionRepository;
 use App\Repositories\SmsMessageRepository;
 use App\Repositories\SmsResponseRepository;
@@ -33,9 +32,9 @@ class SmsManagerServiceTest extends TestCase
     {
         return new SmsManagerService(
             smsService: $smsService,
-            smsMessageRepository: new SmsMessageRepository(),
-            smsResponseRepository: new SmsResponseRepository(),
-            sentSmsQuestionRepository: new SentSmsQuestionRepository()
+            smsMessageRepository: new SmsMessageRepository,
+            smsResponseRepository: new SmsResponseRepository,
+            sentSmsQuestionRepository: new SentSmsQuestionRepository
         );
     }
 

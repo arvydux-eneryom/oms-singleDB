@@ -6,8 +6,8 @@ use App\Models\TelegramSession;
 use App\Models\User;
 use App\Repositories\TelegramSessionRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TelegramSessionRepositoryTest extends TestCase
@@ -19,7 +19,7 @@ class TelegramSessionRepositoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new TelegramSessionRepository();
+        $this->repository = new TelegramSessionRepository;
     }
 
     #[Test]

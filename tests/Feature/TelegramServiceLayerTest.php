@@ -23,13 +23,14 @@ class TelegramServiceLayerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected TelegramSessionRepository $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = User::factory()->create();
-        $this->repository = new TelegramSessionRepository();
+        $this->repository = new TelegramSessionRepository;
     }
 
     protected function tearDown(): void
@@ -78,7 +79,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $channelService = new TelegramChannelService();
+        $channelService = new TelegramChannelService;
 
         // Mock the MadelineProto API client
         $mockClient = Mockery::mock(API::class);
@@ -126,7 +127,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $channelService = new TelegramChannelService();
+        $channelService = new TelegramChannelService;
 
         $mockClient = Mockery::mock(API::class);
         $mockMessages = Mockery::mock();
@@ -328,7 +329,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $channelService = new TelegramChannelService();
+        $channelService = new TelegramChannelService;
 
         $mockClient = Mockery::mock(API::class);
         $mockChannels = Mockery::mock();
@@ -364,7 +365,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $channelService = new TelegramChannelService();
+        $channelService = new TelegramChannelService;
 
         $mockClient = Mockery::mock(API::class);
         $mockMessages = Mockery::mock();
@@ -384,7 +385,7 @@ class TelegramServiceLayerTest extends TestCase
         $mockMessages->shouldReceive('sendMessage')
             ->once()
             ->with(Mockery::on(function ($arg) use ($username, $inviteLink) {
-                return $arg['peer'] === '@' . $username &&
+                return $arg['peer'] === '@'.$username &&
                        str_contains($arg['message'], $inviteLink) &&
                        str_contains($arg['message'], 'invited to join');
             }))
@@ -427,7 +428,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $channelService = new TelegramChannelService();
+        $channelService = new TelegramChannelService;
         $mockClient = Mockery::mock(API::class);
         $mockMessages = Mockery::mock();
         $mockClient->messages = $mockMessages;

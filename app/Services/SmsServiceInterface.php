@@ -14,5 +14,6 @@ interface SmsServiceInterface
     public function sendQueued(string $to, string $body, ?int $userId = null): void;
 
     public function handleIncomingSms(IncomingSmsData $data): Response;
+
     public function handleOutgoingSmsStatus(OutgoingSmsStatusData $data): Response;
 }

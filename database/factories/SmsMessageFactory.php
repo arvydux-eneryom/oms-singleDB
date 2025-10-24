@@ -13,12 +13,12 @@ class SmsMessageFactory extends Factory
     public function definition(): array
     {
         return [
-            'sms_sid' => 'SM' . $this->faker->uuid(),
-            'to' => '+370' . $this->faker->numerify('########'),
+            'sms_sid' => 'SM'.$this->faker->uuid(),
+            'to' => '+370'.$this->faker->numerify('########'),
             'from' => '+447426914907',
             'body' => $this->faker->sentence(),
             'status' => $this->faker->randomElement(['queued', 'sent', 'delivered', 'undelivered']),
-            'account_sid' => 'AC' . $this->faker->uuid(),
+            'account_sid' => 'AC'.$this->faker->uuid(),
             'message_type' => 'outgoing',
             'user_id' => User::factory(),
         ];
@@ -28,7 +28,7 @@ class SmsMessageFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'message_type' => 'incoming',
-            'from' => '+370' . $this->faker->numerify('########'),
+            'from' => '+370'.$this->faker->numerify('########'),
             'to' => '+447426914907',
             'user_id' => null,
         ]);

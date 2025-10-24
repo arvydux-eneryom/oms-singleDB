@@ -5,12 +5,13 @@ namespace App\Livewire\Permissions;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class Edit extends Component
 {
     public string $tenant = '';
+
     public Permission $permission;
+
     public string $name = '';
 
     public function mount(Permission $permission)
@@ -30,11 +31,11 @@ class Edit extends Component
                 Rule::unique('permissions', 'name')
                     ->ignore($this->permission),
             ],
-            'tenant' => ['numeric']
+            'tenant' => ['numeric'],
         ]);
 
         $this->permission->update([
-            'name'         => $this->name,
+            'name' => $this->name,
         ]);
 
         session()->flash('success', 'Permission successfully updated.');

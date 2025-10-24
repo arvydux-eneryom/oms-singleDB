@@ -3,21 +3,25 @@
 namespace App\Livewire\Users;
 
 use App\Models\User;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
 class Edit extends Component
 {
     public User $user;
+
     public string $name = '';
+
     public string $email = '';
+
     public array $roles = [];
+
     public ?string $userRoles = '';
+
     public array $notAssignedSubdomains = [];
+
     public ?int $assignedSubdomain = null;
 
     public function mount(User $user)

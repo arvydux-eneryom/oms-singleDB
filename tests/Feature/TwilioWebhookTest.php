@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\SentSmsQuestion;
 use App\Models\SmsMessage;
 use App\Models\SmsQuestion;
-use App\Models\SmsResponse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;

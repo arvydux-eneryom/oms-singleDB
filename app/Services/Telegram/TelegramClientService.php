@@ -21,19 +21,19 @@ class TelegramClientService
     public function initializeClient(TelegramSession $session): ?API
     {
         try {
-            if (!is_dir($session->session_path)) {
+            if (! is_dir($session->session_path)) {
                 mkdir($session->session_path, 0700, true);
             }
 
-            $settings = new Settings();
+            $settings = new Settings;
 
             // Configure app info
-            $appInfo = new AppInfo();
+            $appInfo = new AppInfo;
             $appInfo->setApiId((int) config('services.telegram.api_id'));
             $appInfo->setApiHash(config('services.telegram.api_hash'));
             $settings->setAppInfo($appInfo);
 
-            return new API($session->session_path . '/session.madeline', $settings);
+            return new API($session->session_path.'/session.madeline', $settings);
         } catch (\Throwable $e) {
             Log::error('Failed to initialize Telegram client', [
                 'session_id' => $session->id,
@@ -50,17 +50,19 @@ class TelegramClientService
      */
     public function isAuthorized(?API $client): bool
     {
-        if (!$client) {
+        if (! $client) {
             return false;
         }
 
         try {
             $authorization = $client->getAuthorization();
+
             return $authorization === API::LOGGED_IN;
         } catch (\Throwable $e) {
             Log::error('Error checking authorization', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -70,17 +72,19 @@ class TelegramClientService
      */
     public function getLoggedUserData(?API $client): ?array
     {
-        if (!$client || !$this->isAuthorized($client)) {
+        if (! $client || ! $this->isAuthorized($client)) {
             return null;
         }
 
         try {
             $fullInfo = $client->getSelf();
+
             return $fullInfo;
         } catch (\Throwable $e) {
             Log::error('Error getting user data', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -123,9 +127,9 @@ class TelegramClientService
     {
         try {
             $lockFiles = [
-                $path . '/ipcState.php.lock',
-                $path . '/lightState.php.lock',
-                $path . '/safe.php.lock',
+                $path.'/ipcState.php.lock',
+                $path.'/lightState.php.lock',
+                $path.'/safe.php.lock',
             ];
 
             foreach ($lockFiles as $lockFile) {
@@ -135,7 +139,7 @@ class TelegramClientService
             }
 
             // Remove session files
-            $files = glob($path . '/*');
+            $files = glob($path.'/*');
             foreach ($files as $file) {
                 if (is_file($file)) {
                     @unlink($file);

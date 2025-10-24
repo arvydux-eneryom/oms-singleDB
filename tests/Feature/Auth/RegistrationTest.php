@@ -275,7 +275,7 @@ class RegistrationTest extends TestCase
     {
         $response = Volt::test('auth.register')
             ->set('name', 'Test Company')
-            ->set('email', str_repeat('a', 247) . '@test.com')
+            ->set('email', str_repeat('a', 247).'@test.com')
             ->set('password', 'password')
             ->set('password_confirmation', 'password')
             ->call('register');

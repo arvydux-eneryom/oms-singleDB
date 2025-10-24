@@ -163,7 +163,7 @@ class RolePermissionSeederTest extends TestCase
             ->get();
 
         $uniqueCombinations = $rolePermissions->unique(function ($item) {
-            return $item->role_id . '-' . $item->permission_id;
+            return $item->role_id.'-'.$item->permission_id;
         });
 
         $this->assertEquals(

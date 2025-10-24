@@ -22,7 +22,7 @@ class TelegramAuthService
     {
         $session = $this->sessionRepository->getActiveSession($userId);
 
-        if (!$session) {
+        if (! $session) {
             $session = $this->sessionRepository->createSession($userId, $ipAddress, $userAgent);
         }
 
@@ -73,7 +73,7 @@ class TelegramAuthService
     {
         try {
             // Validate phone number format (E.164)
-            if (!preg_match('/^\+[1-9]\d{1,14}$/', $phone)) {
+            if (! preg_match('/^\+[1-9]\d{1,14}$/', $phone)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid phone number format. Please use E.164 format (e.g., +1234567890)',
@@ -81,7 +81,7 @@ class TelegramAuthService
             }
 
             Log::info('Initiating phone login', [
-                'phone' => substr($phone, 0, 5) . '***',
+                'phone' => substr($phone, 0, 5).'***',
             ]);
 
             $result = $client->phoneLogin($phone);
@@ -93,6 +93,7 @@ class TelegramAuthService
 
             if ($result === false) {
                 Log::warning('Phone login returned false');
+
                 return [
                     'success' => false,
                     'error' => 'Failed to initiate phone login. Please try again or use QR code login.',
@@ -101,6 +102,7 @@ class TelegramAuthService
 
             if ($result === API::LOGGED_IN) {
                 Log::info('User already logged in via phone login');
+
                 return [
                     'success' => true,
                     'logged_in' => true,
@@ -143,13 +145,13 @@ class TelegramAuthService
             }
 
             Log::error('Phone login failed', [
-                'phone' => substr($phone, 0, 5) . '***',
+                'phone' => substr($phone, 0, 5).'***',
                 'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'error' => 'Login failed: ' . $e->getMessage(),
+                'error' => 'Login failed: '.$e->getMessage(),
             ];
         }
     }
@@ -161,7 +163,7 @@ class TelegramAuthService
     {
         try {
             // Validate code format (5 digits)
-            if (!preg_match('/^\d{5}$/', $code)) {
+            if (! preg_match('/^\d{5}$/', $code)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid verification code format. Code must be exactly 5 digits.',
@@ -188,7 +190,7 @@ class TelegramAuthService
 
             return [
                 'success' => false,
-                'error' => 'Verification failed: ' . $e->getMessage(),
+                'error' => 'Verification failed: '.$e->getMessage(),
             ];
         }
     }
@@ -220,7 +222,7 @@ class TelegramAuthService
 
             return [
                 'success' => false,
-                'error' => 'Failed to terminate session: ' . $e->getMessage(),
+                'error' => 'Failed to terminate session: '.$e->getMessage(),
             ];
         }
     }
@@ -231,6 +233,7 @@ class TelegramAuthService
     public function hasActiveSession(int $userId): bool
     {
         $session = $this->sessionRepository->getActiveSession($userId);
+
         return $session !== null && $session->isValid();
     }
 

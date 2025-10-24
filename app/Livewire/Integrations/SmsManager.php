@@ -6,7 +6,6 @@ use App\Models\SmsMessage;
 use App\Services\SmsManagerService;
 use App\Services\TwilioSmsService;
 use Illuminate\Bus\Batch;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -14,14 +13,23 @@ use Livewire\Component;
 class SmsManager extends Component
 {
     public $smsMessages = [];
+
     public $to;
+
     public string $questionTo = '';
+
     public $body;
+
     public $bodyForBulkSms;
+
     public array $selectedUsers = [];
+
     public ?string $successMessage = null;
+
     public ?string $errorMessage = null;
+
     public ?string $messageTimestamp = null;
+
     public ?string $accountBalance = null;
 
     public function mount()

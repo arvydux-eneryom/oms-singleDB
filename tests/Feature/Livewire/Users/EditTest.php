@@ -650,7 +650,7 @@ class EditTest extends TestCase
 
         Livewire::test(Edit::class, ['user' => $tenantUser])
             ->set('name', 'Test User')
-            ->set('email', str_repeat('a', 250) . '@example.com') // Exceeds 255
+            ->set('email', str_repeat('a', 250).'@example.com') // Exceeds 255
             ->call('save')
             ->assertHasErrors(['email']);
     }

@@ -8,19 +8,26 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
-use Livewire\Component;
 use Illuminate\View\View;
+use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
 class Create extends Component
 {
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public User $user;
+
     public string $userRoles = '';
+
     public array $roles = [];
+
     public array $notAssignedSubdomains = [];
+
     public ?int $assignedSubdomain = null;
 
     public function mount()
@@ -55,7 +62,7 @@ class Create extends Component
 
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered(($this->user = User::create($validated  + ['is_tenant' => true, 'system_id' => auth()->user()->system_id]))));
+        event(new Registered(($this->user = User::create($validated + ['is_tenant' => true, 'system_id' => auth()->user()->system_id]))));
 
         DB::table('model_has_roles')->where('model_id', $this->user->id)->delete();
 

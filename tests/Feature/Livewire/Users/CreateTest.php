@@ -436,7 +436,7 @@ class CreateTest extends TestCase
 
         Livewire::test(Create::class)
             ->set('name', 'Test User')
-            ->set('email', str_repeat('a', 250) . '@example.com') // Exceeds 255
+            ->set('email', str_repeat('a', 250).'@example.com') // Exceeds 255
             ->set('password', 'SecurePassword123!')
             ->call('save')
             ->assertHasErrors(['email']);

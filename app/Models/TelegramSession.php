@@ -42,12 +42,13 @@ class TelegramSession extends Model
 
     public function isValid(): bool
     {
-        return $this->is_active && !$this->isExpired();
+        return $this->is_active && ! $this->isExpired();
     }
 
     public function touch($attribute = null)
     {
         $this->last_activity_at = now();
+
         return parent::touch($attribute);
     }
 

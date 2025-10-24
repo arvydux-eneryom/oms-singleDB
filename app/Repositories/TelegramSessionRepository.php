@@ -28,8 +28,8 @@ class TelegramSessionRepository
         $expiresInDays = $expiresInDays ?? config('services.telegram.session_expires_days', 30);
 
         // Create session directory with secure permissions
-        if (!is_dir($sessionPath)) {
-            if (!mkdir($sessionPath, 0700, true) && !is_dir($sessionPath)) {
+        if (! is_dir($sessionPath)) {
+            if (! mkdir($sessionPath, 0700, true) && ! is_dir($sessionPath)) {
                 throw new \RuntimeException("Failed to create session directory: {$sessionPath}");
             }
         }
@@ -94,7 +94,7 @@ class TelegramSessionRepository
                 $this->deactivateSession($session);
                 $count++;
             } catch (\Throwable $e) {
-                Log::error('Failed to cleanup expired session: ' . $e->getMessage(), [
+                Log::error('Failed to cleanup expired session: '.$e->getMessage(), [
                     'session_id' => $session->id,
                 ]);
             }
@@ -114,7 +114,7 @@ class TelegramSessionRepository
                 ]);
             }
         } catch (\Throwable $e) {
-            Log::error('Failed to cleanup session files: ' . $e->getMessage(), [
+            Log::error('Failed to cleanup session files: '.$e->getMessage(), [
                 'session_id' => $session->id,
                 'path' => $session->session_path,
             ]);

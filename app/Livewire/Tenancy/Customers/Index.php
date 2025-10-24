@@ -3,12 +3,12 @@
 namespace App\Livewire\Tenancy\Customers;
 
 use App\Models\Customer;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\Url;
-use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Index extends Component
@@ -33,11 +33,14 @@ class Index extends Component
 
     // Bulk operations
     public array $selectedCustomers = [];
+
     public bool $selectAll = false;
 
     // UI state
     public bool $showFilters = false;
+
     public bool $showBulkActions = false;
+
     public string $bulkAction = '';
 
     // Statistics
@@ -45,6 +48,7 @@ class Index extends Component
 
     // Available options
     public array $perPageOptions = [10, 15, 25, 50, 100];
+
     public array $sortOptions = [
         'created_at' => 'Date Created',
         'company' => 'Company Name',
@@ -138,6 +142,7 @@ class Index extends Component
     {
         if (empty($this->selectedCustomers)) {
             session()->flash('error', 'No customers selected.');
+
             return;
         }
 
@@ -165,6 +170,7 @@ class Index extends Component
     {
         if (empty($this->selectedCustomers)) {
             session()->flash('error', 'No customers selected.');
+
             return;
         }
 
@@ -197,7 +203,7 @@ class Index extends Component
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="customers-' . now()->format('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="customers-'.now()->format('Y-m-d').'.csv"',
         ];
 
         return response()->stream(function () use ($customers) {
@@ -244,6 +250,7 @@ class Index extends Component
     {
         if (empty($this->selectedCustomers)) {
             session()->flash('error', 'No customers selected.');
+
             return response()->noContent();
         }
 
@@ -253,7 +260,7 @@ class Index extends Component
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="customers-selected-' . now()->format('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="customers-selected-'.now()->format('Y-m-d').'.csv"',
         ];
 
         return response()->stream(function () use ($customers) {
@@ -300,15 +307,15 @@ class Index extends Component
             ->where('tenant_id', $tenantId)
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('company', 'like', '%' . $this->search . '%')
-                        ->orWhere('address', 'like', '%' . $this->search . '%')
-                        ->orWhere('city', 'like', '%' . $this->search . '%')
-                        ->orWhere('country', 'like', '%' . $this->search . '%')
+                    $q->where('company', 'like', '%'.$this->search.'%')
+                        ->orWhere('address', 'like', '%'.$this->search.'%')
+                        ->orWhere('city', 'like', '%'.$this->search.'%')
+                        ->orWhere('country', 'like', '%'.$this->search.'%')
                         ->orWhereHas('customerPhones', function ($q) {
-                            $q->where('phone', 'like', '%' . $this->search . '%');
+                            $q->where('phone', 'like', '%'.$this->search.'%');
                         })
                         ->orWhereHas('customerEmails', function ($q) {
-                            $q->where('email', 'like', '%' . $this->search . '%');
+                            $q->where('email', 'like', '%'.$this->search.'%');
                         });
                 });
             })

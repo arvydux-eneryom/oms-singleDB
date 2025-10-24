@@ -15,8 +15,7 @@ class TwilioWebhookController extends Controller
     public function __construct(
         protected TwilioSmsService $twilioSmsService,
         protected SmsManagerService $smsManagerService
-    ) {
-    }
+    ) {}
 
     public function handleIncomingSms(TwilioIncomingSmsRequest $request): Response
     {

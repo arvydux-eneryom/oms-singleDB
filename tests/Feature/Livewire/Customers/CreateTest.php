@@ -4,23 +4,19 @@ namespace Tests\Feature\Livewire\Customers;
 
 use App\Livewire\Tenancy\Customers\Create;
 use App\Models\Customer;
-use App\Models\CustomerPhone;
-use App\Models\CustomerEmail;
-use App\Models\CustomerContact;
-use App\Models\CustomerServiceAddress;
-use App\Models\CustomerBillingAddress;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CreateTest extends TestCase
 {
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void
@@ -651,7 +647,7 @@ class CreateTest extends TestCase
             \DB::commit();
         } catch (\Exception $e) {
             \DB::rollBack();
-            $this->fail('Transaction failed: ' . $e->getMessage());
+            $this->fail('Transaction failed: '.$e->getMessage());
         }
     }
 }

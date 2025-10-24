@@ -17,7 +17,7 @@ class Company extends Model implements HasMedia
         'user_id',
     ];
 
-    public function registerMediaConversions(Media $media = null): void
+    public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
             ->width(300)

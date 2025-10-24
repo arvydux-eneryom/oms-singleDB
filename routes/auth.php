@@ -4,20 +4,17 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+Volt::route('login', 'auth.login')
+    ->name('login');
 
-    Volt::route('login', 'auth.login')
-        ->name('login');
+Volt::route('register', 'auth.register')
+    ->name('register');
 
-    Volt::route('register', 'auth.register')
-        ->name('register');
+Volt::route('forgot-password', 'auth.forgot-password')
+    ->name('password.request');
 
-    Volt::route('forgot-password', 'auth.forgot-password')
-        ->name('password.request');
-
-    Volt::route('reset-password/{token}', 'auth.reset-password')
-        ->name('password.reset');
-
-
+Volt::route('reset-password/{token}', 'auth.reset-password')
+    ->name('password.reset');
 
 Route::middleware('auth')->group(function () {
     Volt::route('verify-email', 'auth.verify-email')

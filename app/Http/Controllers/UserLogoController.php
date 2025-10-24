@@ -39,6 +39,7 @@ class UserLogoController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'user_id' => Auth::id(),
             ]);
+
             return redirect()->back()->with('logo-error', 'The logo failed to upload. Please try again.');
         }
     }

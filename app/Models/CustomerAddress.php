@@ -18,7 +18,7 @@ class CustomerAddress extends Model
     ];
 
     protected $casts = [
-       // 'is_primary' => 'boolean',
+        // 'is_primary' => 'boolean',
         'latitude' => 'float',
         'longitude' => 'float',
     ];

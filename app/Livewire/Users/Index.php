@@ -33,10 +33,10 @@ class Index extends Component
 
     public function render()
     {
-      //  $tenant = Tenant::findOrFail($this->tenantId);
+        //  $tenant = Tenant::findOrFail($this->tenantId);
 
         $users = User::with('roles', 'permissions')
-            ->where('system_id', auth()->user()->system_id )
+            ->where('system_id', auth()->user()->system_id)
             ->paginate(5);
 
         return view('livewire.users.index', compact('users'));

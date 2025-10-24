@@ -4,23 +4,24 @@ namespace Tests\Feature\Livewire\Customers;
 
 use App\Livewire\Tenancy\Customers\View;
 use App\Models\Customer;
-use App\Models\CustomerPhone;
-use App\Models\CustomerEmail;
-use App\Models\CustomerContact;
-use App\Models\CustomerServiceAddress;
 use App\Models\CustomerBillingAddress;
+use App\Models\CustomerContact;
+use App\Models\CustomerEmail;
+use App\Models\CustomerPhone;
+use App\Models\CustomerServiceAddress;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class ViewTest extends TestCase
 {
     use RefreshDatabase;
 
     protected Tenant $tenant;
+
     protected User $user;
 
     protected function setUp(): void

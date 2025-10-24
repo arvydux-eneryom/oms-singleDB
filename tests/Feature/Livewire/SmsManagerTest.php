@@ -205,7 +205,7 @@ class SmsManagerTest extends TestCase
         // Assert
         Bus::assertBatched(function ($batch) {
             return $batch->jobs->count() === 2
-                && $batch->jobs->every(fn($job) => $job instanceof SendBulkSmsJob);
+                && $batch->jobs->every(fn ($job) => $job instanceof SendBulkSmsJob);
         });
     }
 
@@ -362,7 +362,7 @@ class SmsManagerTest extends TestCase
         $mockBalance->balance = '20.00';
         $mockBalance->currency = 'USD';
 
-        $this->mock(TwilioSmsService::class, function ($mock) use ($mockBalance) {
+        $this->mock(TwilioSmsService::class, function ($mock) {
             $mock->shouldReceive('getAccountBalance')
                 ->atLeast()->once()
                 ->andReturn([
@@ -476,7 +476,7 @@ class SmsManagerTest extends TestCase
         // Assert - should only see own messages
         $this->assertCount(3, $component->smsMessages);
         $this->assertTrue(
-            collect($component->smsMessages)->every(fn($msg) => $msg['user_id'] === $this->user->id)
+            collect($component->smsMessages)->every(fn ($msg) => $msg['user_id'] === $this->user->id)
         );
     }
 

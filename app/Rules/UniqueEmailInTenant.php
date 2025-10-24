@@ -2,13 +2,13 @@
 
 namespace App\Rules;
 
-use Closure;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 
 class UniqueEmailInTenant implements Rule
 {
     protected $tenantId;
+
     protected $userIdToIgnore;
 
     public function __construct($tenantId, $userIdToIgnore = null)

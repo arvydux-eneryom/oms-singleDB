@@ -14,8 +14,11 @@ class MyAccountLinkTest extends TestCase
     use RefreshDatabase;
 
     protected User $systemUser;
+
     protected Tenant $tenant;
+
     protected Role $superAdminSystemRole;
+
     protected Role $superAdminTenantRole;
 
     protected function setUp(): void
@@ -66,7 +69,7 @@ class MyAccountLinkTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('My account');
-        $response->assertSee(config('app.url') . '/dashboard');
+        $response->assertSee(config('app.url').'/dashboard');
     }
 
     public function test_my_account_link_hidden_when_not_in_tenant_context(): void
@@ -130,7 +133,7 @@ class MyAccountLinkTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee(config('app.url') . '/dashboard', false);
+        $response->assertSee(config('app.url').'/dashboard', false);
     }
 
     public function test_my_account_link_has_target_blank_attribute(): void
@@ -157,7 +160,7 @@ class MyAccountLinkTest extends TestCase
         $regularUser = User::factory()->create([
             'is_system' => false, // Not a system user
             'is_tenant' => true,
-            'system_id' => 1
+            'system_id' => 1,
         ]);
         $regularUser->assignRole('admin-for-tenant');
         $this->tenant->users()->attach($regularUser->id);

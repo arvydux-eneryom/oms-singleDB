@@ -10,16 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
-use Spatie\Permission\Traits\HasRoles;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, InteractsWithMedia;
-
+    use HasFactory, HasRoles, InteractsWithMedia, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -73,10 +72,11 @@ class User extends Authenticatable implements HasMedia
     public static function getNextSystemIdOrDefault(): int
     {
         $max = self::max('system_id');
+
         return $max ? $max + 1 : 1;
     }
 
-    public  function isSystem(): bool
+    public function isSystem(): bool
     {
         return $this->is_system;
     }
@@ -104,10 +104,10 @@ class User extends Authenticatable implements HasMedia
     public function domains()
     {
         return $this->hasMany(Domain::class);
-/*        return $this->hasMany(Domain::class)
-            ->whereHas('user', function ($query) {
-                $query->where('is_system', true);
-            });*/
+        /*        return $this->hasMany(Domain::class)
+                    ->whereHas('user', function ($query) {
+                        $query->where('is_system', true);
+                    });*/
     }
 
     /**

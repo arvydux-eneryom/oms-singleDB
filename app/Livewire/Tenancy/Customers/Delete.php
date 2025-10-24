@@ -3,18 +3,22 @@
 namespace App\Livewire\Tenancy\Customers;
 
 use App\Models\Customer;
-use Livewire\Component;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class Delete extends Component
 {
     public $customerId;
+
     public Customer $customer;
+
     public bool $isDeleting = false;
+
     public bool $showConfirmation = true;
 
     // Customer info for display
     public string $customerName = '';
+
     public int $relatedRecordsCount = 0;
 
     public function mount($customerId)

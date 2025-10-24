@@ -3,16 +3,16 @@
 namespace App\Livewire\Subdomains;
 
 use App\Models\Tenant;
-use Livewire\Component;
 use Illuminate\View\View;
+use Livewire\Component;
 
 class Create extends Component
 {
     public string $subdomain = '';
+
     public string $companyName = '';
 
-    public function mount()
-    {}
+    public function mount() {}
 
     public function save(): void
     {
@@ -28,7 +28,7 @@ class Create extends Component
         $tenant->domains()->create([
             'name' => $validated['companyName'],
             'subdomain' => $validated['subdomain'],
-            'domain' => $validated['subdomain'] . '.' . config('tenancy.central_domains')[0],
+            'domain' => $validated['subdomain'].'.'.config('tenancy.central_domains')[0],
             'system_id' => auth()->user()->system_id,
         ]);
 

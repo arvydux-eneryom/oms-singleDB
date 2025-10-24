@@ -1,18 +1,16 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use App\Http\Controllers\LogoController;
 use App\Http\Controllers\TwilioWebhookController;
+use App\Livewire\Integrations;
 use App\Livewire\Integrations\SmsManager;
-use App\Services\TwilioSmsService;
+use App\Livewire\Permissions;
+use App\Livewire\Roles;
+use App\Livewire\Subdomains;
+use App\Livewire\Tenancy\Customers;
+use App\Livewire\Users;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
-use App\Livewire\Subdomains;
-use App\Http\Controllers\LogoController;
-use App\Livewire\Users;
-use App\Livewire\Roles;
-use App\Livewire\Permissions;
-use App\Livewire\Integrations;
-use App\Livewire\Tenancy\Customers;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,11 +45,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('user/upload-logo', [\App\Http\Controllers\UserLogoController::class, 'upload'])->name('user.upload-logo');
 
     Route::get('subdomains', Subdomains\Index::class)->name('subdomains.index');
-    Route::get('subdomains/redirect', Subdomains\Redirect::class)->name('subdomains.redirect'); //temporary
+    Route::get('subdomains/redirect', Subdomains\Redirect::class)->name('subdomains.redirect'); // temporary
     Route::get('subdomains/create', Subdomains\Create::class)->name('subdomains.create');
     Route::get('subdomains/{subdomain}/edit', Subdomains\Edit::class)->name('subdomains.edit');
 
-    //Route::resource('roles', RoleController::class);
+    // Route::resource('roles', RoleController::class);
     // Route::resource('users', UserController::class);
     Route::get('users', Users\Index::class)->name('users.index');
     Route::get('users/create', Users\Create::class)->name('users.create');

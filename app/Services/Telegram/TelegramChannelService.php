@@ -85,7 +85,7 @@ class TelegramChannelService
 
             return [
                 'success' => false,
-                'error' => 'Failed to create channel: ' . $e->getMessage(),
+                'error' => 'Failed to create channel: '.$e->getMessage(),
             ];
         }
     }
@@ -97,7 +97,7 @@ class TelegramChannelService
     {
         try {
             // Validate channel ID
-            if (!is_numeric($channelId)) {
+            if (! is_numeric($channelId)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid channel ID.',
@@ -118,7 +118,7 @@ class TelegramChannelService
 
             return [
                 'success' => false,
-                'error' => 'Failed to delete channel: ' . $e->getMessage(),
+                'error' => 'Failed to delete channel: '.$e->getMessage(),
             ];
         }
     }
@@ -130,7 +130,7 @@ class TelegramChannelService
     {
         try {
             // Validate channel ID
-            if (!is_numeric($channelId)) {
+            if (! is_numeric($channelId)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid channel ID.',
@@ -151,7 +151,7 @@ class TelegramChannelService
             $username = ltrim($username, '@');
 
             // Validate username format (5-32 characters, alphanumeric + underscore)
-            if (!preg_match('/^[a-zA-Z0-9_]{5,32}$/', $username)) {
+            if (! preg_match('/^[a-zA-Z0-9_]{5,32}$/', $username)) {
                 return [
                     'success' => false,
                     'error' => 'Invalid Telegram username format. Username must be 5-32 characters long and contain only letters, numbers, and underscores.',
@@ -165,7 +165,7 @@ class TelegramChannelService
 
             $inviteLink = $inviteResult['link'] ?? null;
 
-            if (!$inviteLink) {
+            if (! $inviteLink) {
                 return [
                     'success' => false,
                     'error' => 'Failed to generate invite link for the channel.',
@@ -176,7 +176,7 @@ class TelegramChannelService
             $message = "Hello! You've been invited to join a Telegram channel.\n\nClick the link below to join:\n{$inviteLink}";
 
             $client->messages->sendMessage([
-                'peer' => '@' . $username,
+                'peer' => '@'.$username,
                 'message' => $message,
             ]);
 
@@ -193,7 +193,7 @@ class TelegramChannelService
 
             return [
                 'success' => false,
-                'error' => 'Failed to send invitation: ' . $e->getMessage(),
+                'error' => 'Failed to send invitation: '.$e->getMessage(),
             ];
         }
     }
@@ -204,7 +204,7 @@ class TelegramChannelService
     public function getChannelInfo(API $client, int|string $channelId): ?array
     {
         try {
-            if (!is_numeric($channelId)) {
+            if (! is_numeric($channelId)) {
                 return null;
             }
 

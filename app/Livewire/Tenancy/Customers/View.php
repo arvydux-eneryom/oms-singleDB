@@ -3,27 +3,36 @@
 namespace App\Livewire\Tenancy\Customers;
 
 use App\Models\Customer;
-use Livewire\Component;
-use Illuminate\View\View as RenderView;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View as RenderView;
+use Livewire\Component;
 
 class View extends Component
 {
     public Customer $customer;
+
     public string $currentTab = 'overview';
+
     public array $activityLog = [];
+
     public array $stats = [];
 
     // Quick action modals
     public bool $showDeleteModal = false;
+
     public bool $showSmsModal = false;
+
     public bool $showEmailModal = false;
 
     // SMS/Email form data
     public string $smsMessage = '';
+
     public string $emailSubject = '';
+
     public string $emailBody = '';
+
     public ?string $selectedPhone = null;
+
     public ?string $selectedEmail = null;
 
     public function mount(Customer $customer)
@@ -54,7 +63,7 @@ class View extends Component
     {
         try {
             $this->customer->update([
-                'status' => !$this->customer->status,
+                'status' => ! $this->customer->status,
             ]);
 
             $statusText = $this->customer->status ? 'activated' : 'deactivated';
@@ -137,7 +146,7 @@ class View extends Component
             // Implement your SMS sending logic here
             // Example: app(SmsService::class)->send($this->selectedPhone, $this->smsMessage);
 
-            session()->flash('success', 'SMS sent successfully to ' . $this->selectedPhone);
+            session()->flash('success', 'SMS sent successfully to '.$this->selectedPhone);
             $this->showSmsModal = false;
             $this->reset(['smsMessage', 'selectedPhone']);
         } catch (\Exception $e) {
@@ -172,7 +181,7 @@ class View extends Component
             // Implement your email sending logic here
             // Example: Mail::to($this->selectedEmail)->send(new CustomerEmail(...));
 
-            session()->flash('success', 'Email sent successfully to ' . $this->selectedEmail);
+            session()->flash('success', 'Email sent successfully to '.$this->selectedEmail);
             $this->showEmailModal = false;
             $this->reset(['emailSubject', 'emailBody', 'selectedEmail']);
         } catch (\Exception $e) {

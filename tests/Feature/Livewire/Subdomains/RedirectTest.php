@@ -26,7 +26,7 @@ class RedirectTest extends TestCase
         $tenant->save();
 
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'subdomain' => 'test',
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
@@ -38,9 +38,8 @@ class RedirectTest extends TestCase
         Livewire::test(Redirect::class)
             ->assertStatus(200)
             ->assertSee('window.location.href')
-            ->assertSee('test.' . config('tenancy.central_domains')[0]);
+            ->assertSee('test.'.config('tenancy.central_domains')[0]);
     }
-
 
     public function test_redirect_uses_first_subdomain_ordered_by_created_at_desc(): void
     {
@@ -54,7 +53,7 @@ class RedirectTest extends TestCase
         $tenant1->name = 'First Company';
         $tenant1->save();
         Domain::create([
-            'domain' => 'first.' . config('tenancy.central_domains')[0],
+            'domain' => 'first.'.config('tenancy.central_domains')[0],
             'subdomain' => 'first',
             'tenant_id' => $tenant1->id,
             'name' => 'First Company',
@@ -66,7 +65,7 @@ class RedirectTest extends TestCase
         $tenant2->name = 'Second Company';
         $tenant2->save();
         Domain::create([
-            'domain' => 'second.' . config('tenancy.central_domains')[0],
+            'domain' => 'second.'.config('tenancy.central_domains')[0],
             'subdomain' => 'second',
             'tenant_id' => $tenant2->id,
             'name' => 'Second Company',
@@ -78,7 +77,7 @@ class RedirectTest extends TestCase
         $tenant3->name = 'Third Company';
         $tenant3->save();
         Domain::create([
-            'domain' => 'third.' . config('tenancy.central_domains')[0],
+            'domain' => 'third.'.config('tenancy.central_domains')[0],
             'subdomain' => 'third',
             'tenant_id' => $tenant3->id,
             'name' => 'Third Company',
@@ -92,9 +91,8 @@ class RedirectTest extends TestCase
         Livewire::test(Redirect::class)
             ->assertStatus(200)
             ->assertSee('window.location.href')
-            ->assertSee('third.' . config('tenancy.central_domains')[0]);
+            ->assertSee('third.'.config('tenancy.central_domains')[0]);
     }
-
 
     public function test_redirect_loads_tenant_relationship(): void
     {
@@ -108,7 +106,7 @@ class RedirectTest extends TestCase
         $tenant->save();
 
         $domain = Domain::create([
-            'domain' => 'test.' . config('tenancy.central_domains')[0],
+            'domain' => 'test.'.config('tenancy.central_domains')[0],
             'subdomain' => 'test',
             'tenant_id' => $tenant->id,
             'name' => 'Test Company',
@@ -145,7 +143,7 @@ class RedirectTest extends TestCase
         $tenant2->save();
 
         Domain::create([
-            'domain' => 'company1.' . config('tenancy.central_domains')[0],
+            'domain' => 'company1.'.config('tenancy.central_domains')[0],
             'subdomain' => 'company1',
             'tenant_id' => $tenant1->id,
             'name' => 'Company System 1',
@@ -153,7 +151,7 @@ class RedirectTest extends TestCase
         ]);
 
         Domain::create([
-            'domain' => 'company2.' . config('tenancy.central_domains')[0],
+            'domain' => 'company2.'.config('tenancy.central_domains')[0],
             'subdomain' => 'company2',
             'tenant_id' => $tenant2->id,
             'name' => 'Company System 2',
@@ -164,15 +162,15 @@ class RedirectTest extends TestCase
         $this->actingAs($user1);
 
         Livewire::test(Redirect::class)
-            ->assertSee('company1.' . config('tenancy.central_domains')[0])
-            ->assertDontSee('company2.' . config('tenancy.central_domains')[0]);
+            ->assertSee('company1.'.config('tenancy.central_domains')[0])
+            ->assertDontSee('company2.'.config('tenancy.central_domains')[0]);
 
         // User 2 should redirect to their system's subdomain
         $this->actingAs($user2);
 
         Livewire::test(Redirect::class)
-            ->assertSee('company2.' . config('tenancy.central_domains')[0])
-            ->assertDontSee('company1.' . config('tenancy.central_domains')[0]);
+            ->assertSee('company2.'.config('tenancy.central_domains')[0])
+            ->assertDontSee('company1.'.config('tenancy.central_domains')[0]);
     }
 
     public function test_unauthenticated_users_cannot_access_redirect(): void

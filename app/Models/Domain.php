@@ -21,9 +21,10 @@ class Domain extends BaseDomain
     {
         $centralDomain = config('tenancy.central_domains')[0];
         // Remove the central domain part to get the subdomain
-        if (str_ends_with($this->domain, '.' . $centralDomain)) {
-            return substr($this->domain, 0, -strlen('.' . $centralDomain));
+        if (str_ends_with($this->domain, '.'.$centralDomain)) {
+            return substr($this->domain, 0, -strlen('.'.$centralDomain));
         }
+
         return $this->domain;
     }
 }

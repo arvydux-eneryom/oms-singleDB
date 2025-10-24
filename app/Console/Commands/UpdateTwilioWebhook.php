@@ -34,15 +34,16 @@ class UpdateTwilioWebhook extends Command
         // Get ngrok URL - either from argument or auto-detect
         $ngrokUrl = $this->argument('ngrokUrl');
 
-        if (!$ngrokUrl) {
+        if (! $ngrokUrl) {
             $this->info('No URL provided. Attempting to auto-detect ngrok URL...');
             $ngrokUrl = $this->getNgrokUrl();
 
-            if (!$ngrokUrl) {
+            if (! $ngrokUrl) {
                 $this->error('✗ Could not detect ngrok URL. Make sure ngrok is running.');
                 $this->newLine();
                 $this->line('You can manually specify the URL:');
                 $this->line('  php artisan twilio:update-webhook https://xxxx.ngrok-free.app');
+
                 return 1;
             }
 
@@ -50,7 +51,7 @@ class UpdateTwilioWebhook extends Command
             $this->newLine();
         }
 
-        $webhookUrl = rtrim($ngrokUrl, '/') . '/twilio/sms/incoming';
+        $webhookUrl = rtrim($ngrokUrl, '/').'/twilio/sms/incoming';
 
         try {
             $client = new Client($accountSid, $authToken);
@@ -77,7 +78,7 @@ class UpdateTwilioWebhook extends Command
                     // Check if update is needed
                     $webhookNeedsUpdate = $currentWebhook !== $webhookUrl;
 
-                    if (!$webhookNeedsUpdate) {
+                    if (! $webhookNeedsUpdate) {
                         $this->info('✓ Twilio webhook is already up to date.');
                         $this->newLine();
 
@@ -107,8 +108,9 @@ class UpdateTwilioWebhook extends Command
                     }
 
                     // Confirm update
-                    if (!$this->confirm('Do you want to update the Twilio webhook?', true)) {
+                    if (! $this->confirm('Do you want to update the Twilio webhook?', true)) {
                         $this->line('Update cancelled.');
+
                         return 0;
                     }
 
@@ -116,7 +118,7 @@ class UpdateTwilioWebhook extends Command
                     $client->incomingPhoneNumbers($number->sid)
                         ->update([
                             'smsUrl' => $webhookUrl,
-                            'smsMethod' => 'POST'
+                            'smsMethod' => 'POST',
                         ]);
 
                     $this->newLine();
@@ -137,28 +139,28 @@ class UpdateTwilioWebhook extends Command
                 }
             }
 
-            if (!$found) {
+            if (! $found) {
                 $this->error("✗ Phone number {$phoneNumber} not found in your Twilio account.");
                 $this->newLine();
-                $this->line("Available phone numbers:");
+                $this->line('Available phone numbers:');
                 foreach ($incomingPhoneNumbers as $number) {
                     $this->line("  - {$number->phoneNumber}");
                 }
+
                 return 1;
             }
 
             return 0;
 
         } catch (\Exception $e) {
-            $this->error("✗ Error: " . $e->getMessage());
+            $this->error('✗ Error: '.$e->getMessage());
+
             return 1;
         }
     }
 
     /**
      * Get the current ngrok public URL from the ngrok API.
-     *
-     * @return string|null
      */
     protected function getNgrokUrl(): ?string
     {
@@ -166,7 +168,7 @@ class UpdateTwilioWebhook extends Command
             // Query ngrok API (default runs on localhost:4040)
             $response = Http::timeout(3)->get('http://localhost:4040/api/tunnels');
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
@@ -190,15 +192,12 @@ class UpdateTwilioWebhook extends Command
 
     /**
      * Check if .env file needs updating.
-     *
-     * @param string $ngrokUrl
-     * @return bool
      */
     protected function envNeedsUpdate(string $ngrokUrl): bool
     {
         $envPath = base_path('.env');
 
-        if (!file_exists($envPath)) {
+        if (! file_exists($envPath)) {
             return false;
         }
 
@@ -207,6 +206,7 @@ class UpdateTwilioWebhook extends Command
         // Check if TWILIO_SMS_COMMON_URL matches the current ngrok URL
         if (preg_match('/^TWILIO_SMS_COMMON_URL=(.*)$/m', $envContent, $matches)) {
             $currentUrl = trim($matches[1]);
+
             return $currentUrl !== $ngrokUrl;
         }
 
@@ -215,16 +215,14 @@ class UpdateTwilioWebhook extends Command
 
     /**
      * Update the .env file with the new ngrok URL.
-     *
-     * @param string $ngrokUrl
-     * @return void
      */
     protected function updateEnvFile(string $ngrokUrl): void
     {
         $envPath = base_path('.env');
 
-        if (!file_exists($envPath)) {
+        if (! file_exists($envPath)) {
             $this->warn('⚠ .env file not found. Skipping .env update.');
+
             return;
         }
 
@@ -237,23 +235,20 @@ class UpdateTwilioWebhook extends Command
         if (preg_match($pattern, $envContent)) {
             $newContent = preg_replace($pattern, $replacement, $envContent);
             file_put_contents($envPath, $newContent);
-            $this->line("  → Updated TWILIO_SMS_COMMON_URL in .env");
+            $this->line('  → Updated TWILIO_SMS_COMMON_URL in .env');
         } else {
-            $this->warn("⚠ TWILIO_SMS_COMMON_URL not found in .env");
+            $this->warn('⚠ TWILIO_SMS_COMMON_URL not found in .env');
         }
     }
 
     /**
      * Check if config/tenancy.php needs updating.
-     *
-     * @param string $ngrokUrl
-     * @return bool
      */
     protected function tenancyConfigNeedsUpdate(string $ngrokUrl): bool
     {
         $tenancyPath = config_path('tenancy.php');
 
-        if (!file_exists($tenancyPath)) {
+        if (! file_exists($tenancyPath)) {
             return false;
         }
 
@@ -269,16 +264,14 @@ class UpdateTwilioWebhook extends Command
 
     /**
      * Update the config/tenancy.php file with the new ngrok domain.
-     *
-     * @param string $ngrokUrl
-     * @return void
      */
     protected function updateTenancyConfig(string $ngrokUrl): void
     {
         $tenancyPath = config_path('tenancy.php');
 
-        if (!file_exists($tenancyPath)) {
+        if (! file_exists($tenancyPath)) {
             $this->warn('⚠ config/tenancy.php not found. Skipping tenancy config update.');
+
             return;
         }
 
@@ -296,9 +289,9 @@ class UpdateTwilioWebhook extends Command
         if (preg_match($pattern, $tenancyContent)) {
             $newContent = preg_replace($pattern, $replacement, $tenancyContent);
             file_put_contents($tenancyPath, $newContent);
-            $this->line("  → Updated central_domains in config/tenancy.php");
+            $this->line('  → Updated central_domains in config/tenancy.php');
         } else {
-            $this->warn("⚠ ngrok domain not found in config/tenancy.php central_domains");
+            $this->warn('⚠ ngrok domain not found in config/tenancy.php central_domains');
         }
     }
 }

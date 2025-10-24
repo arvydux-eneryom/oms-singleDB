@@ -28,25 +28,27 @@ class CleanupTelegramSessions extends Command
     {
         $sessionDir = storage_path('app/telegram/sessions');
 
-        if (!is_dir($sessionDir)) {
+        if (! is_dir($sessionDir)) {
             $this->info('No session directory found. Nothing to clean up.');
+
             return 0;
         }
 
-        if (!$this->option('force')) {
-            if (!$this->confirm('This will remove all lock files and allow new logins. Continue?')) {
+        if (! $this->option('force')) {
+            if (! $this->confirm('This will remove all lock files and allow new logins. Continue?')) {
                 $this->info('Cleanup cancelled.');
+
                 return 0;
             }
         }
 
-        $lockFiles = File::glob($sessionDir . '/**/*.lock');
+        $lockFiles = File::glob($sessionDir.'/**/*.lock');
         $locksRemoved = 0;
 
         foreach ($lockFiles as $lockFile) {
             if (File::delete($lockFile)) {
                 $locksRemoved++;
-                $this->line("Removed: " . basename($lockFile));
+                $this->line('Removed: '.basename($lockFile));
             }
         }
 

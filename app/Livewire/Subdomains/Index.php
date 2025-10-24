@@ -4,7 +4,6 @@ namespace App\Livewire\Subdomains;
 
 use App\Models\Domain;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -15,9 +14,7 @@ class Index extends Component
 
     protected $paginationTheme = 'tailwind';
 
-    public function mount()
-    {
-    }
+    public function mount() {}
 
     public function delete(int $id)
     {

@@ -2,21 +2,23 @@
 
 namespace App\Jobs;
 
+use App\Services\SmsServiceInterface;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Services\SmsServiceInterface;
 use Illuminate\Support\Facades\Log;
 
 class SendBulkSmsJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Batchable;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $to;
+
     protected $body;
+
     protected $userId;
 
     public function __construct($to, $body, $userId)

@@ -11,8 +11,11 @@ use Spatie\Permission\Models\Role;
 class Edit extends Component
 {
     public Role $role;
+
     public string $name = '';
+
     public Collection $permissions;
+
     public array $rolePermissions = [];
 
     public function mount(Role $role)
@@ -35,7 +38,7 @@ class Edit extends Component
         ]);
 
         $this->role->update([
-            'name'         => $this->name,
+            'name' => $this->name,
         ]);
 
         $this->role->syncPermissions($this->rolePermissions);

@@ -11,8 +11,11 @@ use Spatie\Permission\Models\Role;
 class Create extends Component
 {
     public string $tenant = '';
+
     public string $name = '';
+
     public Collection $permissions;
+
     public array $rolePermissions = [];
 
     public function mount()

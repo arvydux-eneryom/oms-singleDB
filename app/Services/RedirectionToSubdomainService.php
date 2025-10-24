@@ -17,8 +17,7 @@ class RedirectionToSubdomainService
 
         if ($subdomains->count() === 1) {
             return redirect()->route('subdomains.redirect');
-        }
-        else {
+        } else {
             return redirect()->route('dashboard');
         }
     }
@@ -34,8 +33,7 @@ class RedirectionToSubdomainService
 
         if ($subdomains->count() === 1) {
             return 'subdomains.redirect';
-        }
-        else {
+        } else {
             return 'dashboard';
         }
     }

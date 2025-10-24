@@ -25,6 +25,3 @@ parameters:
         - node_modules
         - storage
         - bootstrap/cache
-
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false

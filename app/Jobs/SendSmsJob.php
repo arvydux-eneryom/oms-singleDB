@@ -31,8 +31,7 @@ class SendSmsJob implements ShouldQueue
         public string $to,
         public string $body,
         public ?int $userId = null
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the job.
@@ -41,12 +40,12 @@ class SendSmsJob implements ShouldQueue
     {
         try {
             $smsService->send($this->to, $this->body, $this->userId);
-            Log::info("SMS queued job completed successfully", [
+            Log::info('SMS queued job completed successfully', [
                 'to' => $this->to,
                 'user_id' => $this->userId,
             ]);
         } catch (\Exception $e) {
-            Log::error("SMS queued job failed", [
+            Log::error('SMS queued job failed', [
                 'to' => $this->to,
                 'error' => $e->getMessage(),
                 'attempt' => $this->attempts(),
@@ -62,7 +61,7 @@ class SendSmsJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error("SMS queued job permanently failed after all retries", [
+        Log::error('SMS queued job permanently failed after all retries', [
             'to' => $this->to,
             'user_id' => $this->userId,
             'error' => $exception->getMessage(),

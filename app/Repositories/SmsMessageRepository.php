@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\DTOs\IncomingSmsData;
-use App\DTOs\OutgoingSmsStatusData;
 use App\Models\SmsMessage;
 
 class SmsMessageRepository
