@@ -19,7 +19,7 @@ return [
      */
     'central_domains' => [
         'localhost',
-        'e28fef8b1423.ngrok-free.app', // ngrok domain for webhooks
+        // 'e28fef8b1423.ngrok-free.app', // ngrok domain for webhooks (commented out - access via localhost)
     ],
 
     /**
