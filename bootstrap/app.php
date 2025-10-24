@@ -37,7 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Request::HEADER_X_FORWARDED_PROTO);
 
         // Configure rate limiters
-        $middleware->throttleWithRedis();
+        // Note: Using database-based throttling instead of Redis
+        // $middleware->throttleWithRedis();
 
         // SMS sending rate limit: 10 requests per minute per user
         $middleware->throttleApi('sms-sending', function (Request $request) {

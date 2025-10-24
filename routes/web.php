@@ -43,6 +43,9 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:sms-sending')
         ->name('integrations.sms.send-question');
 
+    // User logo upload (traditional form, no Livewire to avoid Redis issues)
+    Route::post('user/upload-logo', [\App\Http\Controllers\UserLogoController::class, 'upload'])->name('user.upload-logo');
+
     Route::get('subdomains', Subdomains\Index::class)->name('subdomains.index');
     Route::get('subdomains/redirect', Subdomains\Redirect::class)->name('subdomains.redirect'); //temporary
     Route::get('subdomains/create', Subdomains\Create::class)->name('subdomains.create');
