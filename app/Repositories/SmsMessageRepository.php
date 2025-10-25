@@ -2,10 +2,11 @@
 
 namespace App\Repositories;
 
+use App\Contracts\Repositories\SmsMessageRepositoryInterface;
 use App\DTOs\IncomingSmsData;
 use App\Models\SmsMessage;
 
-class SmsMessageRepository
+class SmsMessageRepository implements SmsMessageRepositoryInterface
 {
     public function createIncoming(IncomingSmsData $data): SmsMessage
     {
