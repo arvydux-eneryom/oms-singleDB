@@ -5,42 +5,83 @@ on:
     branches:
       - develop
       - main
+      - master
   pull_request:
     branches:
       - develop
       - main
+      - master
 
 permissions:
   contents: write
 
 jobs:
-  quality:
+  php-code-style:
     runs-on: ubuntu-latest
     environment: Testing
+    name: PHP Code Style (Pint)
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
 
       - name: Add Flux Credentials Loaded From ENV
         run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
 
       - name: Install Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-          npm install
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-      - name: Run Pint
-        run: vendor/bin/pint
+      - name: Run Pint (Check Only)
+        run: vendor/bin/pint --test
 
-      # - name: Commit Changes
-      #   uses: stefanzweifel/git-auto-commit-action@v5
-      #   with:
-      #     commit_message: fix code style
-      #     commit_options: '--no-verify'
-      #     file_pattern: |
-      #       **/*
-      #       !.github/workflows/*
+  php-static-analysis:
+    runs-on: ubuntu-latest
+    environment: Testing
+    name: PHP Static Analysis (PHPStan)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+
+      - name: Add Flux Credentials Loaded From ENV
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Run PHPStan
+        run: XDEBUG_MODE=off ./vendor/bin/phpstan analyse --memory-limit=512M --no-progress
+
+  frontend-linting:
+    runs-on: ubuntu-latest
+    name: Frontend Linting
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint:js
+
+      - name: Run Prettier
+        run: npm run lint:prettier
+
+      - name: Run Blade Formatter
+        run: npm run lint:blade

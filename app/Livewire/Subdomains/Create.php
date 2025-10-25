@@ -37,7 +37,6 @@ class Create extends Component
 
         session()->flash('success', 'Subdomain successfully created.');
 
-        // TODO: update later
         $this->redirectRoute('subdomains.index', navigate: true);
     }
 

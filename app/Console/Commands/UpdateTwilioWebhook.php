@@ -115,7 +115,8 @@ class UpdateTwilioWebhook extends Command
                     }
 
                     // Update the webhook
-                    $client->incomingPhoneNumbers($number->sid)
+                    $client->incomingPhoneNumbers
+                        ->get($number->sid)
                         ->update([
                             'smsUrl' => $webhookUrl,
                             'smsMethod' => 'POST',

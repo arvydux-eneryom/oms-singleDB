@@ -21,7 +21,7 @@
                 </div>
                 <div class="flex flex-col flex-1 h-24">
                     <flux:input
-                        wire:model="subdomainText"
+                        wire:model="subdomainValue"
                         :label="__('Subdomain')"
                         type="text"
                         required
@@ -29,7 +29,7 @@
                         :placeholder="__('Subdomain')"
                         class="flex-1"
                     />
-                    @error('subdomainText')
+                    @error('subdomainValue')
                     <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                     @enderror
                 </div>

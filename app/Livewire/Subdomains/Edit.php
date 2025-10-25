@@ -13,26 +13,25 @@ class Edit extends Component
 
     public string $domain = '';
 
-    // TODO : rename $subdomainText to something better
-    public string $subdomainText = '';
+    public string $subdomainValue = '';
 
     public string $name = '';
 
     public function mount(Domain $subdomain)
     {
         $this->subdomain = $subdomain;
-        $this->subdomainText = $subdomain->subdomain;
+        $this->subdomainValue = $subdomain->subdomain;
         $this->name = $subdomain->name;
     }
 
     public function save(): void
     {
         $validated = $this->validate([
-            'subdomainText' => [
+            'subdomainValue' => [
                 'required',
                 'regex:/^[a-zA-Z0-9]+$/',
                 'max:8',
-                Rule::unique('domains', 'subdomain')->ignore($this->subdomainText),
+                Rule::unique('domains', 'subdomain')->ignore($this->subdomainValue),
             ],
             'name' => [
                 'required',
@@ -43,7 +42,7 @@ class Edit extends Component
 
         $this->subdomain->update([
             'name' => $validated['name'],
-            'domain' => $this->convertSubdomainToDomain($validated['subdomainText']),
+            'domain' => $this->convertSubdomainToDomain($validated['subdomainValue']),
         ]);
 
         // dd($this->subdomain, $this->subdomain->subdomain);

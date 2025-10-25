@@ -31,9 +31,9 @@ Route::post(config('services.twilio.outgoing_sms_status_callback_url_path'), [Tw
 
 Route::middleware(['auth'])->group(function () {
     Route::get('integrations', Integrations\Index::class)->name('integrations.index');
-    Route::get('integrations/telegram', Integrations\telegram\Index::class)->name('integrations.telegram.index');
-    Route::get('integrations/telegram/connection-message', [Integrations\telegram\Index::class, 'showConnectionMessage'])->name('integrations.telegram.connection-message');
-    Route::get('integrations/telegram/create-channel', [Integrations\telegram\Index::class, 'createChannel'])->name('integrations.telegram.createChannel');
+    Route::get('integrations/telegram', Integrations\Telegram\Index::class)->name('integrations.telegram.index');
+    Route::get('integrations/telegram/connection-message', [Integrations\Telegram\Index::class, 'showConnectionMessage'])->name('integrations.telegram.connection-message');
+    Route::get('integrations/telegram/create-channel', [Integrations\Telegram\Index::class, 'createChannel'])->name('integrations.telegram.createChannel');
 
     Route::get('integrations/sms', SmsManager::class)->name('integrations.sms-manager.index');
 
