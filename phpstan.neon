@@ -22,6 +22,6 @@ parameters:
 
     excludePaths:
         - vendor
-        - node_modules
-        - storage
-        - bootstrap/cache
+        - node_modules (?)
+        - storage (?)
+        - bootstrap/cache (?)
