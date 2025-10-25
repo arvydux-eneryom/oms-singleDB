@@ -5,6 +5,7 @@ namespace App\Livewire\Integrations\Telegram;
 use App\Models\TelegramSession;
 use App\Repositories\TelegramSessionRepository;
 use App\Services\Telegram\TelegramAuthService;
+use App\Services\Telegram\TelegramBugsnagService;
 use App\Services\Telegram\TelegramChannelService;
 use App\Services\Telegram\TelegramClientService;
 use App\Services\Telegram\TelegramMessageService;
@@ -55,11 +56,12 @@ class Index extends Component
 
     public function boot(): void
     {
+        $bugsnagService = new TelegramBugsnagService;
         $this->sessionRepository = new TelegramSessionRepository;
-        $this->clientService = new TelegramClientService($this->sessionRepository);
-        $this->authService = new TelegramAuthService($this->sessionRepository, $this->clientService);
-        $this->channelService = new TelegramChannelService;
-        $this->messageService = new TelegramMessageService;
+        $this->clientService = new TelegramClientService($this->sessionRepository, $bugsnagService);
+        $this->authService = new TelegramAuthService($this->sessionRepository, $this->clientService, $bugsnagService);
+        $this->channelService = new TelegramChannelService($bugsnagService);
+        $this->messageService = new TelegramMessageService($bugsnagService);
     }
 
     public function mount()
@@ -134,7 +136,7 @@ class Index extends Component
             }
 
             // Generate QR code SVG
-            $qrSvg = $this->authService->generateQrCode($this->client);
+            $qrSvg = $this->authService->generateQrCode($this->client, $this->currentSession);
 
             if ($qrSvg) {
                 $this->qrSvg = $qrSvg;
@@ -177,7 +179,7 @@ class Index extends Component
                 return;
             }
 
-            $result = $this->authService->initiatePhoneLogin($this->client, $this->phone);
+            $result = $this->authService->initiatePhoneLogin($this->client, $this->phone, $this->currentSession);
 
             if ($result['success']) {
                 if ($result['logged_in'] ?? false) {
@@ -223,7 +225,7 @@ class Index extends Component
                 return;
             }
 
-            $result = $this->authService->completePhoneLogin($this->client, (string) $this->loginCode);
+            $result = $this->authService->completePhoneLogin($this->client, (string) $this->loginCode, $this->currentSession);
 
             if ($result['success']) {
                 session()->flash('message', $result['message']);

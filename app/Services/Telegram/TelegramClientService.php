@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Log;
 class TelegramClientService
 {
     public function __construct(
-        protected TelegramSessionRepository $sessionRepository
+        protected TelegramSessionRepository $sessionRepository,
+        protected TelegramBugsnagService $bugsnag
     ) {}
 
     /**
@@ -21,6 +22,10 @@ class TelegramClientService
     public function initializeClient(TelegramSession $session): ?API
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Initializing Telegram client', [
+                'session_id' => $session->id,
+            ]);
+
             if (! is_dir($session->session_path)) {
                 mkdir($session->session_path, 0700, true);
             }
@@ -33,13 +38,21 @@ class TelegramClientService
             $appInfo->setApiHash(config('services.telegram.api_hash'));
             $settings->setAppInfo($appInfo);
 
-            return new API($session->session_path.'/session.madeline', $settings);
+            $client = new API($session->session_path.'/session.madeline', $settings);
+
+            $this->bugsnag->leaveBreadcrumb('Telegram client initialized successfully', [
+                'session_id' => $session->id,
+            ]);
+
+            return $client;
         } catch (\Throwable $e) {
             Log::error('Failed to initialize Telegram client', [
                 'session_id' => $session->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
+            $this->bugsnag->notifyClientError($e, $session);
 
             return null;
         }
@@ -63,6 +76,10 @@ class TelegramClientService
                 'error' => $e->getMessage(),
             ]);
 
+            $this->bugsnag->notifyError($e, null, [
+                'operation' => 'check_authorization',
+            ]);
+
             return false;
         }
     }
@@ -77,12 +94,20 @@ class TelegramClientService
         }
 
         try {
+            $this->bugsnag->leaveBreadcrumb('Fetching logged user data from Telegram');
+
             $fullInfo = $client->getSelf();
+
+            $this->bugsnag->leaveBreadcrumb('User data fetched successfully');
 
             return $fullInfo;
         } catch (\Throwable $e) {
             Log::error('Error getting user data', [
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyError($e, null, [
+                'operation' => 'get_user_data',
             ]);
 
             return null;
@@ -95,6 +120,10 @@ class TelegramClientService
     public function safeLogout(?API $client, TelegramSession $session): bool
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Starting safe logout', [
+                'session_id' => $session->id,
+            ]);
+
             if ($client && $this->isAuthorized($client)) {
                 $client->logout();
             }
@@ -106,11 +135,19 @@ class TelegramClientService
                 $this->cleanupSessionDirectory($session->session_path);
             }
 
+            $this->bugsnag->leaveBreadcrumb('Safe logout completed', [
+                'session_id' => $session->id,
+            ]);
+
             return true;
         } catch (\Throwable $e) {
             Log::error('Error during safe logout', [
                 'session_id' => $session->id,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyError($e, $session, [
+                'operation' => 'safe_logout',
             ]);
 
             // Still deactivate the session even if logout fails
@@ -126,6 +163,10 @@ class TelegramClientService
     protected function cleanupSessionDirectory(string $path): void
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Cleaning up session directory', [
+                'path' => basename($path),
+            ]);
+
             $lockFiles = [
                 $path.'/ipcState.php.lock',
                 $path.'/lightState.php.lock',
@@ -148,10 +189,19 @@ class TelegramClientService
 
             // Remove directory
             @rmdir($path);
+
+            $this->bugsnag->leaveBreadcrumb('Session directory cleaned up', [
+                'path' => basename($path),
+            ]);
         } catch (\Throwable $e) {
             Log::warning('Failed to cleanup session directory', [
                 'path' => $path,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyError($e, null, [
+                'operation' => 'cleanup_session_directory',
+                'path' => basename($path),
             ]);
         }
     }

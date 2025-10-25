@@ -7,12 +7,18 @@ use Illuminate\Support\Facades\Log;
 
 class TelegramChannelService
 {
+    public function __construct(
+        protected TelegramBugsnagService $bugsnag
+    ) {}
+
     /**
      * Get list of user's channels
      */
     public function getChannels(API $client): array
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Fetching user channels from Telegram');
+
             $dialogs = $client->messages->getDialogs();
             $channels = [];
 
@@ -30,10 +36,16 @@ class TelegramChannelService
                 }
             }
 
+            $this->bugsnag->leaveBreadcrumb('Channels fetched successfully', ['count' => count($channels)]);
+
             return $channels;
         } catch (\Throwable $e) {
             Log::error('Failed to get channels', [
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyChannelError($e, null, null, [
+                'operation' => 'get_channels',
             ]);
 
             return [];
@@ -65,12 +77,16 @@ class TelegramChannelService
                 ];
             }
 
+            $this->bugsnag->leaveBreadcrumb('Creating Telegram channel', ['title' => $title]);
+
             $result = $client->channels->createChannel([
                 'broadcast' => true,
                 'megagroup' => false,
                 'title' => $title,
                 'about' => $description,
             ]);
+
+            $this->bugsnag->leaveBreadcrumb('Channel created successfully', ['title' => $title]);
 
             return [
                 'success' => true,
@@ -81,6 +97,11 @@ class TelegramChannelService
             Log::error('Failed to create channel', [
                 'title' => $title ?? 'unknown',
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyChannelError($e, null, null, [
+                'operation' => 'create_channel',
+                'title' => $title ?? 'unknown',
             ]);
 
             return [
@@ -104,7 +125,11 @@ class TelegramChannelService
                 ];
             }
 
+            $this->bugsnag->leaveBreadcrumb('Deleting Telegram channel', ['channel_id' => $channelId]);
+
             $client->channels->deleteChannel(['channel' => (int) $channelId]);
+
+            $this->bugsnag->leaveBreadcrumb('Channel deleted successfully', ['channel_id' => $channelId]);
 
             return [
                 'success' => true,
@@ -114,6 +139,10 @@ class TelegramChannelService
             Log::error('Failed to delete channel', [
                 'channel_id' => $channelId,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyChannelError($e, null, (string) $channelId, [
+                'operation' => 'delete_channel',
             ]);
 
             return [
@@ -191,6 +220,11 @@ class TelegramChannelService
                 'error' => $e->getMessage(),
             ]);
 
+            $this->bugsnag->notifyChannelError($e, null, (string) $channelId, [
+                'operation' => 'invite_user',
+                'username' => $username ?? 'unknown',
+            ]);
+
             return [
                 'success' => false,
                 'error' => 'Failed to send invitation: '.$e->getMessage(),
@@ -208,6 +242,8 @@ class TelegramChannelService
                 return null;
             }
 
+            $this->bugsnag->leaveBreadcrumb('Fetching channel info', ['channel_id' => $channelId]);
+
             $info = $client->getFullInfo(['id' => (int) $channelId]);
 
             return $info;
@@ -215,6 +251,10 @@ class TelegramChannelService
             Log::error('Failed to get channel info', [
                 'channel_id' => $channelId,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyChannelError($e, null, (string) $channelId, [
+                'operation' => 'get_channel_info',
             ]);
 
             return null;

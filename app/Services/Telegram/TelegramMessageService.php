@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Log;
 
 class TelegramMessageService
 {
+    public function __construct(
+        protected TelegramBugsnagService $bugsnag
+    ) {}
+
     /**
      * Send message to a channel
      */
@@ -38,9 +42,18 @@ class TelegramMessageService
             }
 
             // Send message
+            $this->bugsnag->leaveBreadcrumb('Sending message to channel', [
+                'channel_id' => $channelId,
+                'message_length' => strlen($message),
+            ]);
+
             $result = $client->messages->sendMessage([
                 'peer' => (int) $channelId,
                 'message' => $message,
+            ]);
+
+            $this->bugsnag->leaveBreadcrumb('Message sent to channel successfully', [
+                'channel_id' => $channelId,
             ]);
 
             return [
@@ -52,6 +65,11 @@ class TelegramMessageService
             Log::error('Failed to send message to channel', [
                 'channel_id' => $channelId,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyMessageError($e, null, [
+                'operation' => 'send_message_to_channel',
+                'channel_id' => $channelId,
             ]);
 
             return [
@@ -102,9 +120,18 @@ class TelegramMessageService
             }
 
             // Send message
+            $this->bugsnag->leaveBreadcrumb('Sending message to user', [
+                'username' => $username,
+                'message_length' => strlen($message),
+            ]);
+
             $result = $client->messages->sendMessage([
                 'peer' => '@'.$username,
                 'message' => $message,
+            ]);
+
+            $this->bugsnag->leaveBreadcrumb('Message sent to user successfully', [
+                'username' => $username,
             ]);
 
             return [
@@ -116,6 +143,11 @@ class TelegramMessageService
             Log::error('Failed to send message to user', [
                 'username' => $username ?? 'unknown',
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyMessageError($e, null, [
+                'operation' => 'send_message_to_user',
+                'username' => $username ?? 'unknown',
             ]);
 
             return [
@@ -131,11 +163,19 @@ class TelegramMessageService
     public function forwardMessage(API $client, int $fromPeer, int $messageId, int|string $toPeer): array
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Forwarding message', [
+                'from_peer' => $fromPeer,
+                'message_id' => $messageId,
+                'to_peer' => $toPeer,
+            ]);
+
             $result = $client->messages->forwardMessages([
                 'from_peer' => $fromPeer,
                 'id' => [$messageId],
                 'to_peer' => $toPeer,
             ]);
+
+            $this->bugsnag->leaveBreadcrumb('Message forwarded successfully');
 
             return [
                 'success' => true,
@@ -148,6 +188,13 @@ class TelegramMessageService
                 'message_id' => $messageId,
                 'to_peer' => $toPeer,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyMessageError($e, null, [
+                'operation' => 'forward_message',
+                'from_peer' => $fromPeer,
+                'message_id' => $messageId,
+                'to_peer' => $toPeer,
             ]);
 
             return [
@@ -179,11 +226,18 @@ class TelegramMessageService
                 ];
             }
 
+            $this->bugsnag->leaveBreadcrumb('Editing message', [
+                'peer' => $peer,
+                'message_id' => $messageId,
+            ]);
+
             $result = $client->messages->editMessage([
                 'peer' => $peer,
                 'id' => $messageId,
                 'message' => $newMessage,
             ]);
+
+            $this->bugsnag->leaveBreadcrumb('Message edited successfully');
 
             return [
                 'success' => true,
@@ -195,6 +249,12 @@ class TelegramMessageService
                 'peer' => $peer,
                 'message_id' => $messageId,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyMessageError($e, null, [
+                'operation' => 'edit_message',
+                'peer' => $peer,
+                'message_id' => $messageId,
             ]);
 
             return [
@@ -210,10 +270,17 @@ class TelegramMessageService
     public function deleteMessages(API $client, int|string $peer, array $messageIds): array
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Deleting messages', [
+                'peer' => $peer,
+                'count' => count($messageIds),
+            ]);
+
             $client->channels->deleteMessages([
                 'channel' => $peer,
                 'id' => $messageIds,
             ]);
+
+            $this->bugsnag->leaveBreadcrumb('Messages deleted successfully');
 
             return [
                 'success' => true,
@@ -224,6 +291,12 @@ class TelegramMessageService
                 'peer' => $peer,
                 'message_ids' => $messageIds,
                 'error' => $e->getMessage(),
+            ]);
+
+            $this->bugsnag->notifyMessageError($e, null, [
+                'operation' => 'delete_messages',
+                'peer' => $peer,
+                'message_ids_count' => count($messageIds),
             ]);
 
             return [

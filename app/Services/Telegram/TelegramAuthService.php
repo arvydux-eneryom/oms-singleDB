@@ -12,7 +12,8 @@ class TelegramAuthService
 {
     public function __construct(
         protected TelegramSessionRepository $sessionRepository,
-        protected TelegramClientService $clientService
+        protected TelegramClientService $clientService,
+        protected TelegramBugsnagService $bugsnag
     ) {}
 
     /**
@@ -35,9 +36,11 @@ class TelegramAuthService
     /**
      * Generate QR code for login
      */
-    public function generateQrCode(API $client): ?string
+    public function generateQrCode(API $client, TelegramSession $session): ?string
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Starting QR code generation', ['session_id' => $session->id]);
+
             // Check if already logged in
             if ($client->getAuthorization() === API::LOGGED_IN) {
                 return null;
@@ -53,6 +56,8 @@ class TelegramAuthService
 
             if ($qrLogin) {
                 // Generate SVG QR code (200px size, 2px border)
+                $this->bugsnag->leaveBreadcrumb('QR code generated successfully', ['session_id' => $session->id]);
+
                 return $qrLogin->getQRSvg(200, 2);
             }
 
@@ -62,6 +67,8 @@ class TelegramAuthService
                 'error' => $e->getMessage(),
             ]);
 
+            $this->bugsnag->notifyQrCodeError($e, $session);
+
             return null;
         }
     }
@@ -69,7 +76,7 @@ class TelegramAuthService
     /**
      * Initiate phone number login
      */
-    public function initiatePhoneLogin(API $client, string $phone): array
+    public function initiatePhoneLogin(API $client, string $phone, TelegramSession $session): array
     {
         try {
             // Validate phone number format (E.164)
@@ -79,6 +86,11 @@ class TelegramAuthService
                     'error' => 'Invalid phone number format. Please use E.164 format (e.g., +1234567890)',
                 ];
             }
+
+            $this->bugsnag->leaveBreadcrumb('Initiating phone login', [
+                'phone' => substr($phone, 0, 5).'***',
+                'session_id' => $session->id,
+            ]);
 
             Log::info('Initiating phone login', [
                 'phone' => substr($phone, 0, 5).'***',
@@ -102,6 +114,7 @@ class TelegramAuthService
 
             if ($result === API::LOGGED_IN) {
                 Log::info('User already logged in via phone login');
+                $this->bugsnag->leaveBreadcrumb('User already logged in via phone', ['session_id' => $session->id]);
 
                 return [
                     'success' => true,
@@ -124,6 +137,11 @@ class TelegramAuthService
                 $message = 'You will receive a phone call with your verification code.';
             }
 
+            $this->bugsnag->leaveBreadcrumb('Phone login code sent', [
+                'session_id' => $session->id,
+                'code_type' => $codeType,
+            ]);
+
             return [
                 'success' => true,
                 'logged_in' => false,
@@ -137,6 +155,12 @@ class TelegramAuthService
                 preg_match('/(\d+)/', $e->getMessage(), $matches);
                 $waitTime = $matches[1] ?? 'unknown';
 
+                $this->bugsnag->notifyAuthError($e, $session, 'phone', [
+                    'phone' => substr($phone, 0, 5).'***',
+                    'flood_wait' => true,
+                    'wait_time' => $waitTime,
+                ]);
+
                 return [
                     'success' => false,
                     'error' => "Too many requests. Please wait {$waitTime} seconds before trying again.",
@@ -149,6 +173,10 @@ class TelegramAuthService
                 'error' => $e->getMessage(),
             ]);
 
+            $this->bugsnag->notifyAuthError($e, $session, 'phone', [
+                'phone' => substr($phone, 0, 5).'***',
+            ]);
+
             return [
                 'success' => false,
                 'error' => 'Login failed: '.$e->getMessage(),
@@ -159,7 +187,7 @@ class TelegramAuthService
     /**
      * Complete phone login with verification code
      */
-    public function completePhoneLogin(API $client, string $code): array
+    public function completePhoneLogin(API $client, string $code, TelegramSession $session): array
     {
         try {
             // Validate code format (5 digits)
@@ -170,9 +198,17 @@ class TelegramAuthService
                 ];
             }
 
+            $this->bugsnag->leaveBreadcrumb('Completing phone login with verification code', [
+                'session_id' => $session->id,
+            ]);
+
             $result = $client->completePhoneLogin($code);
 
             if ($result === API::LOGGED_IN) {
+                $this->bugsnag->leaveBreadcrumb('Phone login completed successfully', [
+                    'session_id' => $session->id,
+                ]);
+
                 return [
                     'success' => true,
                     'message' => 'Successfully logged in to Telegram.',
@@ -188,6 +224,8 @@ class TelegramAuthService
                 'error' => $e->getMessage(),
             ]);
 
+            $this->bugsnag->notifyAuthError($e, $session, 'phone_verification');
+
             return [
                 'success' => false,
                 'error' => 'Verification failed: '.$e->getMessage(),
@@ -201,9 +239,17 @@ class TelegramAuthService
     public function terminateSession(TelegramSession $session, ?API $client = null): array
     {
         try {
+            $this->bugsnag->leaveBreadcrumb('Terminating Telegram session', [
+                'session_id' => $session->id,
+            ]);
+
             $success = $this->clientService->safeLogout($client, $session);
 
             if ($success) {
+                $this->bugsnag->leaveBreadcrumb('Session terminated successfully', [
+                    'session_id' => $session->id,
+                ]);
+
                 return [
                     'success' => true,
                     'message' => 'Successfully logged out from Telegram.',
@@ -219,6 +265,8 @@ class TelegramAuthService
                 'session_id' => $session->id,
                 'error' => $e->getMessage(),
             ]);
+
+            $this->bugsnag->notifyAuthError($e, $session, 'logout');
 
             return [
                 'success' => false,

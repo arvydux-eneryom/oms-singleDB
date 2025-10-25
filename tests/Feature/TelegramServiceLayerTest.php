@@ -6,6 +6,7 @@ use App\Models\TelegramSession;
 use App\Models\User;
 use App\Repositories\TelegramSessionRepository;
 use App\Services\Telegram\TelegramAuthService;
+use App\Services\Telegram\TelegramBugsnagService;
 use App\Services\Telegram\TelegramChannelService;
 use App\Services\Telegram\TelegramClientService;
 use danog\MadelineProto\API;
@@ -26,11 +27,14 @@ class TelegramServiceLayerTest extends TestCase
 
     protected TelegramSessionRepository $repository;
 
+    protected TelegramBugsnagService $bugsnag;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = User::factory()->create();
         $this->repository = new TelegramSessionRepository;
+        $this->bugsnag = new TelegramBugsnagService;
     }
 
     protected function tearDown(): void
@@ -46,8 +50,8 @@ class TelegramServiceLayerTest extends TestCase
     #[Test]
     public function auth_service_handles_null_session_during_termination()
     {
-        $clientService = new TelegramClientService($this->repository);
-        $authService = new TelegramAuthService($this->repository, $clientService);
+        $clientService = new TelegramClientService($this->repository, $this->bugsnag);
+        $authService = new TelegramAuthService($this->repository, $clientService, $this->bugsnag);
 
         // Simulate the bug: calling terminateSession with null
         // The old code would throw: "Argument #1 ($session) must be of type App\Models\TelegramSession, null given"
@@ -172,7 +176,7 @@ class TelegramServiceLayerTest extends TestCase
     #[Test]
     public function client_service_returns_null_when_initialization_fails()
     {
-        $clientService = new TelegramClientService($this->repository);
+        $clientService = new TelegramClientService($this->repository, $this->bugsnag);
 
         // Create a session with invalid path to trigger initialization failure
         $session = TelegramSession::create([
@@ -195,7 +199,7 @@ class TelegramServiceLayerTest extends TestCase
     #[Test]
     public function client_service_handles_null_client_in_authorization_check()
     {
-        $clientService = new TelegramClientService($this->repository);
+        $clientService = new TelegramClientService($this->repository, $this->bugsnag);
 
         // Passing null client should return false, not throw an error
         $result = $clientService->isAuthorized(null);
@@ -214,7 +218,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $clientService = new TelegramClientService($this->repository);
+        $clientService = new TelegramClientService($this->repository, $this->bugsnag);
         $authService = new TelegramAuthService($this->repository, $clientService);
 
         $mockClient = Mockery::mock(API::class);
@@ -268,7 +272,7 @@ class TelegramServiceLayerTest extends TestCase
     #[Test]
     public function client_service_handles_logout_with_null_client()
     {
-        $clientService = new TelegramClientService($this->repository);
+        $clientService = new TelegramClientService($this->repository, $this->bugsnag);
 
         $session = $this->repository->createSession($this->user->id);
 
@@ -293,7 +297,7 @@ class TelegramServiceLayerTest extends TestCase
     {
         $this->markTestSkipped('MadelineProto API class is final and cannot be mocked. Requires integration testing with real API.');
 
-        $clientService = new TelegramClientService($this->repository);
+        $clientService = new TelegramClientService($this->repository, $this->bugsnag);
         $authService = new TelegramAuthService($this->repository, $clientService);
 
         $mockClient = Mockery::mock(API::class);
