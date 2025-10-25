@@ -49,8 +49,13 @@ class View extends Component
         $this->loadStatistics();
 
         // Pre-select first phone and email
-        $this->selectedPhone = $this->customer->customerPhones->first()?->phone;
-        $this->selectedEmail = $this->customer->customerEmails->first()?->email;
+        /** @var \App\Models\CustomerPhone|null $firstPhone */
+        $firstPhone = $this->customer->customerPhones->first();
+        $this->selectedPhone = $firstPhone?->phone;
+
+        /** @var \App\Models\CustomerEmail|null $firstEmail */
+        $firstEmail = $this->customer->customerEmails->first();
+        $this->selectedEmail = $firstEmail?->email;
     }
 
     public function switchTab(string $tab): void
@@ -129,7 +134,9 @@ class View extends Component
     // Open SMS modal
     public function openSmsModal(?string $phone = null): void
     {
-        $this->selectedPhone = $phone ?? $this->customer->customerPhones->first()?->phone;
+        /** @var \App\Models\CustomerPhone|null $firstPhone */
+        $firstPhone = $this->customer->customerPhones->first();
+        $this->selectedPhone = $phone ?? $firstPhone?->phone;
         $this->smsMessage = '';
         $this->showSmsModal = true;
     }
@@ -162,7 +169,9 @@ class View extends Component
     // Open email modal
     public function openEmailModal(?string $email = null): void
     {
-        $this->selectedEmail = $email ?? $this->customer->customerEmails->first()?->email;
+        /** @var \App\Models\CustomerEmail|null $firstEmail */
+        $firstEmail = $this->customer->customerEmails->first();
+        $this->selectedEmail = $email ?? $firstEmail?->email;
         $this->emailSubject = '';
         $this->emailBody = '';
         $this->showEmailModal = true;

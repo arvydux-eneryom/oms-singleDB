@@ -59,7 +59,7 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->assertSet('subdomainText', 'testco')
+            ->assertSet('subdomainValue', 'testco')
             ->assertSet('name', 'Test Company');
     }
 
@@ -85,7 +85,7 @@ class EditTest extends TestCase
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
             ->set('name', 'New Company Name')
-            ->set('subdomainText', 'newco')
+            ->set('subdomainValue', 'newco')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -120,7 +120,7 @@ class EditTest extends TestCase
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
             ->set('name', 'Test Company')
-            ->set('subdomainText', 'newtest')
+            ->set('subdomainValue', 'newtest')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -151,7 +151,7 @@ class EditTest extends TestCase
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
             ->set('name', 'Updated Company')
-            ->set('subdomainText', 'updated')
+            ->set('subdomainValue', 'updated')
             ->call('saveAndClose')
             ->assertRedirect(route('subdomains.index'));
     }
@@ -177,10 +177,10 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', '')
+            ->set('subdomainValue', '')
             ->set('name', 'Test Company')
             ->call('save')
-            ->assertHasErrors(['subdomainText' => 'required']);
+            ->assertHasErrors(['subdomainValue' => 'required']);
     }
 
     public function test_name_is_required(): void
@@ -204,7 +204,7 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'test')
+            ->set('subdomainValue', 'test')
             ->set('name', '')
             ->call('save')
             ->assertHasErrors(['name' => 'required']);
@@ -231,10 +231,10 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'test-123')
+            ->set('subdomainValue', 'test-123')
             ->set('name', 'Test Company')
             ->call('save')
-            ->assertHasErrors(['subdomainText' => 'regex']);
+            ->assertHasErrors(['subdomainValue' => 'regex']);
     }
 
     public function test_subdomain_text_cannot_exceed_8_characters(): void
@@ -258,10 +258,10 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'test12345')
+            ->set('subdomainValue', 'test12345')
             ->set('name', 'Test Company')
             ->call('save')
-            ->assertHasErrors(['subdomainText' => 'max']);
+            ->assertHasErrors(['subdomainValue' => 'max']);
     }
 
     public function test_name_cannot_exceed_255_characters(): void
@@ -285,7 +285,7 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'test')
+            ->set('subdomainValue', 'test')
             ->set('name', str_repeat('a', 256))
             ->call('save')
             ->assertHasErrors(['name' => 'max']);
@@ -313,10 +313,10 @@ class EditTest extends TestCase
 
         // Due to validation bug, subdomain must be changed when updating
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'test')
+            ->set('subdomainValue', 'test')
             ->set('name', 'Updated Company Name')
             ->call('save')
-            ->assertHasErrors(['subdomainText']);
+            ->assertHasErrors(['subdomainValue']);
     }
 
     public function test_can_unassign_user_from_domain(): void
@@ -411,7 +411,7 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'newtest')
+            ->set('subdomainValue', 'newtest')
             ->set('name', 'Test Company')
             ->call('save');
 
@@ -441,7 +441,7 @@ class EditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(Edit::class, ['subdomain' => $domain])
-            ->set('subdomainText', 'newname')
+            ->set('subdomainValue', 'newname')
             ->set('name', 'New Name')
             ->call('save');
 

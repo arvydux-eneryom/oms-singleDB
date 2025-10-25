@@ -11,6 +11,9 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * @property \Illuminate\Contracts\Pagination\LengthAwarePaginator $customers
+ */
 class Index extends Component
 {
     use WithPagination;
@@ -87,7 +90,7 @@ class Index extends Component
     public function updatedSelectAll($value)
     {
         if ($value) {
-            $this->selectedCustomers = $this->customers->pluck('id')->toArray();
+            $this->selectedCustomers = collect($this->customers->items())->pluck('id')->toArray();
         } else {
             $this->selectedCustomers = [];
         }

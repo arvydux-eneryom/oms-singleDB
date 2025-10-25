@@ -116,7 +116,7 @@ class UpdateTwilioWebhook extends Command
 
                     // Update the webhook
                     $client->incomingPhoneNumbers
-                        ->get($number->sid)
+                        ->get($number->sid) // @phpstan-ignore method.notFound
                         ->update([
                             'smsUrl' => $webhookUrl,
                             'smsMethod' => 'POST',

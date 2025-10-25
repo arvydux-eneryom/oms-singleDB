@@ -119,11 +119,11 @@ class User extends Authenticatable implements HasMedia
             ->width(100)
             ->height(100)
             ->sharpen(10)
-            ->nonQueued();
+            ->nonQueued(); // @phpstan-ignore method.notFound
 
         $this->addMediaConversion('sidebar')
             ->width(50)
             ->height(50)
-            ->nonQueued();
+            ->nonQueued(); // @phpstan-ignore method.notFound
     }
 }

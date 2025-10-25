@@ -23,7 +23,7 @@ class Company extends Model implements HasMedia
             ->width(300)
             ->height(300)
             ->sharpen(10)
-            ->nonQueued(); // instant for logo
+            ->nonQueued(); // @phpstan-ignore method.notFound instant for logo
     }
 
     public function user(): BelongsTo
