@@ -328,6 +328,30 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
 - Run `composer test` before committing
 - Use `composer lint` to check code quality
 
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+### Feature Guides
+- [Customer Management Manual](docs/CUSTOMER_MANAGEMENT_MANUAL.md)
+- [User Management Guide](docs/USER_MANAGEMENT_GUIDE.md)
+- [Subdomain Management Guide](docs/SUBDOMAIN_MANAGEMENT_GUIDE.md)
+- [Logo Upload Guide](docs/USER_MANUAL_LOGO_UPLOAD.md)
+
+### Integration Guides
+- [SMS User Guide](docs/SMS-USER-GUIDE.md)
+- [SMS Developer Guide](docs/SMS-DEVELOPER-GUIDE.md)
+- [Telegram QR Login](docs/TELEGRAM_QR_LOGIN_FIX.md)
+- [Telegram Session Security](docs/TELEGRAM_SESSION_SECURITY_UPGRADE.md)
+
+### Security & Technical
+- [Auto Logout Feature](docs/AUTO_LOGOUT_FEATURE.md)
+- [Secure Session Implementation](docs/SECURE_SESSION_IMPLEMENTATION_COMPLETE.md)
+- [Service Layer Refactoring](docs/SERVICE_LAYER_REFACTORING.md)
+- [Test Improvements](docs/TEST_IMPROVEMENTS.md)
+
+See [docs/README.md](docs/README.md) for a complete documentation index.
+
 ## License
 
 This project is licensed under the MIT License.
@@ -336,7 +360,7 @@ This project is licensed under the MIT License.
 
 For issues and questions:
 - Create an issue in the GitHub repository
-- Check existing documentation in the `docs/` directory
+- Check existing documentation in the [`docs/`](docs/) directory
 
 ## Changelog
 
