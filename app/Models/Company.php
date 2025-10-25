@@ -19,11 +19,12 @@ class Company extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        // @phpstan-ignore-next-line
         $this->addMediaConversion('thumb')
             ->width(300)
             ->height(300)
             ->sharpen(10)
-            ->nonQueued(); // @phpstan-ignore method.notFound instant for logo
+            ->nonQueued();
     }
 
     public function user(): BelongsTo

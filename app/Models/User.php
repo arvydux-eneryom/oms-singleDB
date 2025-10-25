@@ -115,15 +115,17 @@ class User extends Authenticatable implements HasMedia
      */
     public function registerMediaConversions(?Media $media = null): void
     {
+        // @phpstan-ignore-next-line
         $this->addMediaConversion('thumb')
             ->width(100)
             ->height(100)
             ->sharpen(10)
-            ->nonQueued(); // @phpstan-ignore method.notFound
+            ->nonQueued();
 
+        // @phpstan-ignore-next-line
         $this->addMediaConversion('sidebar')
             ->width(50)
             ->height(50)
-            ->nonQueued(); // @phpstan-ignore method.notFound
+            ->nonQueued();
     }
 }
