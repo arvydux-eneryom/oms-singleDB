@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property-read SmsQuestion $smsQuestion
+ * @property-read User $user
+ */
 class SentSmsQuestion extends Model
 {
     use HasFactory;

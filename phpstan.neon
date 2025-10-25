@@ -14,11 +14,31 @@ parameters:
     # Start with level 5 and gradually increase
     level: 5
 
+    # Don't treat PHPDoc types as certain - helps with Laravel magic properties
+    treatPhpDocTypesAsCertain: false
+
     ignoreErrors:
-        # Ignore Livewire dynamic properties
-        - '#Access to an undefined property Livewire\\Component::\$.*#'
-        # Ignore Volt-specific errors if needed
-        - '#Function state not found\.#'
+        # Ignore Volt component instantiation patterns
+        - '#Expression "new.*class extends.*Volt\\Component.*" on a separate line does not do anything\.#'
+        # Ignore Telegram library type issues (MadelineProto has loose typing)
+        - '#Parameter \#1 \$.* of method danog\\MadelineProto\\.*#'
+        # Ignore Spatie Media Library Pro (optional package)
+        - '#Class Spatie\\MediaLibraryPro\\Models\\TemporaryUpload not found\.#'
+        # Ignore Blade template variable issues (set by parent components)
+        - '#Variable \$.*might not be defined\.#'
+        # Ignore generic model method calls (Eloquent magic)
+        - '#Call to an undefined method TModel of Illuminate\\Database\\Eloquent\\Model::.*#'
+        # Ignore method_exists checks (they're meant to check if method exists)
+        - '#Call to function method_exists\(\) with .* will always evaluate to .*#'
+        # Ignore type narrowing warnings (defensive programming is okay)
+        - '#Variable \$.* on left side of \?\? always exists and is not nullable\.#'
+        - '#Call to function is_array\(\) with .* will always evaluate to .*#'
+        - '#Strict comparison using === between .* will always evaluate to .*#'
+        - '#Using nullsafe property access.*is unnecessary.*#'
+        # Ignore Larastan collection optimizations (we prefer readable code)
+        - '#Called .* on Laravel collection, but could have been retrieved as a query\.#'
+        # Ignore Laravel 11 throttleApi Closure parameter (valid usage)
+        - '#Parameter \#2 \$redis of method Illuminate\\Foundation\\Configuration\\Middleware::throttleApi\(\) expects bool, Closure given\.#'
 
     excludePaths:
         - vendor

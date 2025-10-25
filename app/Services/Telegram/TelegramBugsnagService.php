@@ -27,7 +27,7 @@ class TelegramBugsnagService
                 'telegram' => array_merge([
                     'integration' => 'MadelineProto',
                     'session_id' => $session?->id,
-                    'session_status' => $session?->status,
+                    'session_status' => $session?->is_active ? 'active' : 'inactive',
                     'session_path' => $session?->session_path,
                     'user_id' => $session?->user_id ?? Auth::id(),
                     'last_activity' => $session?->last_activity_at?->toDateTimeString(),
